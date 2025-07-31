@@ -1,7 +1,9 @@
 /// This module handles the core logic of each Loop. Note that a "r#" had to be prepended when using
 /// loop because its a keyword
 use bevy::prelude::*;
+use bevy::sprite::Anchor;
 use rand::Rng;
+use std::f32::consts::PI;
 
 #[derive(Component)]
 struct Boop {
@@ -31,8 +33,8 @@ struct Loop {
     hoops: Vec<Entity>,
 }
 
-const MAX_HOOPS: u32 = 8;
-const MAX_BOOPS: u32 = 16;
+const MAX_HOOPS: usize = 8;
+const MAX_BOOPS: usize = 16;
 /// The max number of hoop
 const INITIAL_HOOP_POSITION: Rot2 = Rot2::FRAC_PI_8;
 /// The initial position of the first hoop.
@@ -83,16 +85,54 @@ impl Command for SpawnLoop {
             .id();
 
         commands.queue(AddBoop(r#loop));
+        commands.queue(AddHoop(r#loop));
     }
 }
 
 /// Custom EntityCommand that adds a hoop to a loop
 /// The hoop is placed in the INITIAL_HOOP_POSITION, or else, 1/8 from the last one
-/// Does nothing and emits warning if you try to add a hoop to a loop that already has MAX_HOOPS. Or if
-/// this is ran on an entity without the Loop component
-pub struct AddHoop;
-impl EntityCommand for AddHoop {
-    fn apply(self, entity: EntityWorldMut) {}
+/// panics if you try to add a hoop to a loop that already has MAX_HOOPS or if the entity does not
+/// contain the Loop Component
+pub struct AddHoop(Entity);
+impl Command for AddHoop {
+    fn apply(self, world: &mut World) {
+        let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
+        let hoop_image = load_random_variant("hoop", &asset_server, 1, 5);
+        let r#loop = self.0;
+
+        const HOOP_SCALE: f32 = 0.3;
+        const HOOP_TO_LOOP_MARGIN: f32 = -10.;
+
+        let new_hoop = world
+            .spawn((
+                Sprite {
+                    image: hoop_image,
+                    anchor: Anchor::BottomCenter,
+                    ..default()
+                },
+                Transform {
+                    translation: Vec3::default().with_y(LOOP_RADIUS + HOOP_TO_LOOP_MARGIN),
+                    scale: Transform::default().scale * HOOP_SCALE,
+                    ..default()
+                },
+                Hoop { r#loop },
+            ))
+            .id();
+
+        let mut r#loop = world.entity_mut(self.0);
+        r#loop.add_child(new_hoop);
+
+        let mut r#loop = r#loop.get_mut::<Loop>().unwrap();
+        let hoop_count = r#loop.hoops.len();
+        if hoop_count >= MAX_HOOPS {
+            panic!();
+        }
+        r#loop.hoops.push(new_hoop);
+
+        let mut new_hoop_transform = world.get_mut::<Transform>(new_hoop).unwrap();
+        new_hoop_transform.rotation =
+            Quat::from_rotation_z(2. * PI * (hoop_count as f32 / MAX_HOOPS as f32));
+    }
 }
 
 /// Custom EntityCommand that adds a boop to a loop
@@ -128,7 +168,12 @@ impl Command for AddBoop {
         commands
             .entity(r#loop)
             .entry::<Loop>()
-            .and_modify(move |mut r#loop| r#loop.boops.push(new_boop));
+            .and_modify(move |mut r#loop| {
+                if r#loop.boops.len() >= MAX_BOOPS {
+                    panic!();
+                }
+                r#loop.boops.push(new_boop);
+            });
 
         commands.entity(r#loop).add_child(new_boop);
     }
