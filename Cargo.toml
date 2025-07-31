@@ -7,6 +7,7 @@ edition = "2024"
 bevy = { version = "0.16.1", features = ["dynamic_linking"] }
 bevy_easings = "0.16.0"
 bevy_svg = "0.16.0-rc1"
+rand = "0.9.2"
 
 [profile.dev]
 opt-level = 1
