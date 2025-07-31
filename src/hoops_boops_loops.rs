@@ -8,7 +8,8 @@ use std::f32::consts::PI;
 #[derive(Component)]
 struct Boop {
     r#loop: Entity,
-    current_loop_position: Rot2,
+    /// In Radians from 0 to 2*PI
+    current_loop_position: f32,
     in_hoop: bool,
 }
 
@@ -16,7 +17,7 @@ impl Default for Boop {
     fn default() -> Self {
         Boop {
             r#loop: Entity::PLACEHOLDER,
-            current_loop_position: Rot2::default(),
+            current_loop_position: 0.,
             in_hoop: false,
         }
     }
@@ -42,18 +43,44 @@ const INITIAL_HOOP_POSITION: Rot2 = Rot2::FRAC_PI_8;
 const LOOP_FILE_HEIGHT: f32 = 720.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
 
+const BOOP_TO_LOOP_MARGIN: f32 = 200.;
+const DEFAULT_BOOP_TRANSLATION: Vec3 = Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 0.);
+
 pub fn hoops_boops_loops_plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
-        (move_boops_forward, position_boops, get_loot_on_boop_in_hoop).chain(),
-    );
+        (move_boops_forward, get_loot_on_boop_in_hoop).chain(),
+    )
+    .add_systems(Update, position_boops); // position boops is run in update because the
+    // transform of the boop is purely visual. We read its position from
+    // boop.current_loop_position
 }
 
 /// Positions boops according to Boop::current_loop_position
-fn position_boops() {}
+fn position_boops(boop_q: Query<(&mut Transform, &Boop)>) {
+    for boop in boop_q {
+        let mut transform = boop.0;
+        let boop = boop.1;
 
-/// Moves boops forwards by incrementing Boop::current_loop_percentage
-fn move_boops_forward() {}
+        transform.translation = DEFAULT_BOOP_TRANSLATION;
+        transform.rotate_around(
+            Vec3::ZERO,
+            Quat::from_rotation_z(boop.current_loop_position),
+        );
+    }
+}
+
+/// Moves boops forwards by incrementing Boop::current_loop_position, modulating it to keep it
+/// between 0 and 2PI
+fn move_boops_forward(boops: Query<&mut Boop>, time: Res<Time>) {
+    const BOOP_SPEED: f32 = 1.2;
+    for mut boop in boops {
+        let increase = BOOP_SPEED * time.delta_secs();
+        boop.current_loop_position += increase;
+        boop.current_loop_position %= 2. * PI;
+        boop.current_loop_position;
+    }
+}
 
 /// Increments loot by 1 whenever a boop enters a hoop
 fn get_loot_on_boop_in_hoop() {}
@@ -148,7 +175,6 @@ impl Command for AddBoop {
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
         const BOOP_SCALE: f32 = 0.1;
-        const BOOP_TO_LOOP_MARGIN: f32 = 200.;
 
         let new_boop = world
             .spawn((
