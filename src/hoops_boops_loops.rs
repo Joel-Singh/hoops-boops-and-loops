@@ -148,7 +148,7 @@ impl Command for AddBoop {
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
         const BOOP_SCALE: f32 = 0.1;
-        const BOOP_TO_LOOP_MARGIN: f32 = 70.;
+        const BOOP_TO_LOOP_MARGIN: f32 = 200.;
 
         let new_boop = world
             .spawn((
