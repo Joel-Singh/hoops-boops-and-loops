@@ -7,6 +7,7 @@ mod background;
 use background::background_plugin;
 
 mod loot;
+use loot::loot_plugin;
 
 fn main() {
     App::new()
@@ -15,6 +16,7 @@ fn main() {
             bevy_svg::prelude::SvgPlugin,
             hoops_boops_loops_plugin,
             background_plugin,
+            loot_plugin,
         ))
         .add_systems(Startup, (setup_camera, spawn_loop))
         .run();

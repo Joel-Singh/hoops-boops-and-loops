@@ -8,7 +8,8 @@ pub fn loot_plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
         update_loot_display.run_if(resource_changed::<Loot>),
-    );
+    )
+    .insert_resource(Loot(0));
 }
 
 /// Show the the loot counter, with bevy easings so it doesn't abruptly show

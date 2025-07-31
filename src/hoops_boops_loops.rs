@@ -1,5 +1,6 @@
 /// This module handles the core logic of each Loop. Note that a "r#" had to be prepended when using
 /// loop because its a keyword
+use crate::loot::Loot;
 use bevy::prelude::*;
 use rand::Rng;
 use std::f32::consts::PI;
@@ -93,11 +94,8 @@ const DEFAULT_BOOP_TRANSLATION: Vec3 = Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_
 pub fn hoops_boops_loops_plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
-        (move_boops_forward, get_loot_on_boop_in_hoop).chain(),
-    )
-    .add_systems(Update, position_boops); // position boops is run in update because the
-    // transform of the boop is purely visual. We read its position from
-    // boop.current_loop_position
+        (move_boops_forward, position_boops, get_loot_on_boop_in_hoop).chain(),
+    );
 }
 
 /// Positions boops according to Boop::current_loop_position
@@ -127,7 +125,53 @@ fn move_boops_forward(boops: Query<&mut Boop>, time: Res<Time>) {
 }
 
 /// Increments loot by 1 whenever a boop enters a hoop
-fn get_loot_on_boop_in_hoop() {}
+fn get_loot_on_boop_in_hoop(
+    mut boop_q: Query<(&Transform, &mut Boop)>,
+    loop_q: Query<&Loop>,
+    mut loot: ResMut<Loot>,
+) {
+    // counterclockwise from the top left
+    let hoop_positions: [Vec2; 8] = [
+        (-64.5, 140.5).into(),
+        (-147.5, 55.5).into(),
+        (-146.0, -58.5).into(),
+        (-67.5, -143.5).into(),
+        (66.5, -142.5).into(),
+        (148.5, -56.5).into(),
+        (147.5, 56.5).into(),
+        (66.5, 141.5).into(),
+    ];
+
+    let on_hoop_tolerance = 5.;
+
+    for r#loop in loop_q {
+        for boop in r#loop.boops.clone() {
+            let (boop_trans, mut boop) = boop_q.get_mut(boop).unwrap();
+
+            let mut in_any_hoop = false;
+            for i in 0..r#loop.hoop_count {
+                let currently_in_hoop = boop_trans
+                    .translation
+                    .truncate()
+                    .distance(hoop_positions[i as usize])
+                    <= on_hoop_tolerance;
+                if currently_in_hoop {
+                    in_any_hoop = true;
+                    break;
+                }
+            }
+
+            if in_any_hoop && !boop.in_hoop {
+                **loot += 1;
+                boop.in_hoop = true;
+            }
+
+            if !in_any_hoop {
+                boop.in_hoop = false;
+            }
+        }
+    }
+}
 
 pub struct SpawnLoop {
     pub position: Vec2,
@@ -164,6 +208,9 @@ impl Command for SpawnLoop {
             .id();
 
         commands.queue(AddBoop(r#loop));
+        commands.queue(AddHoop(r#loop));
+        commands.queue(AddHoop(r#loop));
+        commands.queue(AddHoop(r#loop));
         commands.queue(AddHoop(r#loop));
     }
 }
