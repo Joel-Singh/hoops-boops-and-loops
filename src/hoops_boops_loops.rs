@@ -40,7 +40,7 @@ const MAX_BOOPS: usize = 16;
 const INITIAL_HOOP_POSITION: Rot2 = Rot2::FRAC_PI_8;
 /// The initial position of the first hoop.
 
-const LOOP_FILE_HEIGHT: f32 = 720.;
+const LOOP_FILE_HEIGHT: f32 = 295.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
 
 const BOOP_TO_LOOP_MARGIN: f32 = 200.;
@@ -93,7 +93,7 @@ impl Command for SpawnLoop {
 
     fn apply(self, world: &mut World) {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        let loop_image = load_random_variant("loop", &asset_server, 1, 5);
+        let loop_image = load_random_variant("loop", &asset_server, 1, 6);
 
         let mut commands = world.commands();
 
