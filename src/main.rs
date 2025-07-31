@@ -1,22 +1,25 @@
 use bevy::prelude::*;
-
-mod hoops_boops_loops;
-use hoops_boops_loops::{Planet, SpawnLoop, hoops_boops_loops_plugin};
+use bevy_tweening::TweeningPlugin;
 
 mod background;
-use background::background_plugin;
-
+mod buy_boops_and_hoops;
+mod hoops_boops_loops;
 mod loot;
+
+use background::background_plugin;
+use buy_boops_and_hoops::buy_boops_and_hoops_plugin;
+use hoops_boops_loops::{Planet, SpawnLoop, hoops_boops_loops_plugin};
 use loot::loot_plugin;
 
 fn main() {
     App::new()
         .add_plugins((
             DefaultPlugins,
-            bevy_svg::prelude::SvgPlugin,
             hoops_boops_loops_plugin,
             background_plugin,
             loot_plugin,
+            buy_boops_and_hoops_plugin,
+            TweeningPlugin,
         ))
         .add_systems(Startup, (setup_camera, spawn_loop))
         .run();
@@ -30,5 +33,9 @@ fn spawn_loop(mut commands: Commands) {
     commands.queue(SpawnLoop {
         position: Vec2::ZERO,
         planet: Planet::Two,
+        boop_prices: [
+            1, 5, 10, 20, 50, 100, 200, 300, 400, 800, 1000, 1200, 1500, 2000, 2500,
+        ],
+        hoop_prices: [5, 10, 20, 50, 100, 500, 1000],
     });
 }

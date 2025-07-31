@@ -2,7 +2,7 @@ use bevy::prelude::*;
 
 /// main currency, used to buy more boops and hoops
 #[derive(Resource, Deref, DerefMut)]
-pub struct Loot(u32);
+pub struct Loot(i32);
 
 pub fn loot_plugin(app: &mut App) {
     app.add_systems(
@@ -17,5 +17,5 @@ pub fn show() {}
 
 /// Update the loot display
 pub fn update_loot_display(loot: Res<Loot>) {
-    // dbg!(**loot);
+    dbg!(**loot);
 }

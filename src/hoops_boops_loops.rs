@@ -1,5 +1,6 @@
 /// This module handles the core logic of each Loop. Note that a "r#" had to be prepended when using
 /// loop because its a keyword
+use crate::buy_boops_and_hoops::create_orbit_moon_buttons;
 use crate::loot::Loot;
 use bevy::prelude::*;
 use rand::Rng;
@@ -15,10 +16,10 @@ struct Boop {
 /// from `starting_transform`
 /// REMEMBER, the transform will be reset the starting_transform on each tick
 #[derive(Component)]
-struct Orbit {
+pub struct Orbit {
     /// In Radians from 0 to 2*PI
-    current_loop_position: f32,
-    starting_transform: Transform, // Will determine how far away the entitiy will be
+    pub current_loop_position: f32,
+    pub starting_transform: Transform, // Will determine how far away the entitiy will be
 }
 
 impl Default for Boop {
@@ -180,13 +181,15 @@ fn get_loot_on_boop_in_hoop(
 pub struct SpawnLoop {
     pub position: Vec2,
     pub planet: Planet,
+    pub boop_prices: [i32; 15],
+    pub hoop_prices: [i32; 7],
 }
 
 impl Command for SpawnLoop {
     // Spawns a loop with with 1 boop and 1 hoop at the position of SpawnLoop.0
     // Hoops and Loops will be children of the loop (along with being kept track of in Loops.boops/Loops.hoops) so that their transform is relative to the Loop
 
-    fn apply(self, world: &mut World) {
+    fn apply(self, mut world: &mut World) {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let loop_image = asset_server.load(self.planet.get_sprite_path());
 
@@ -213,9 +216,14 @@ impl Command for SpawnLoop {
 
         commands.queue(AddBoop(r#loop));
         commands.queue(AddHoop(r#loop));
-        commands.queue(AddHoop(r#loop));
-        commands.queue(AddHoop(r#loop));
-        commands.queue(AddHoop(r#loop));
+
+        create_orbit_moon_buttons(
+            r#loop,
+            self.planet,
+            self.boop_prices,
+            self.hoop_prices,
+            &mut world,
+        );
     }
 }
 
@@ -277,7 +285,7 @@ impl Command for AddHoop {
 /// Custom EntityCommand that adds a boop to a loop
 /// panics if you try to add a boop to a loop that already has MAX_BOOPS
 /// Does not check if entity is a loop, behavior is undefined if so
-pub struct AddBoop(Entity);
+pub struct AddBoop(pub Entity);
 impl Command for AddBoop {
     fn apply(self, world: &mut World) {
         let r#loop = self.0;
