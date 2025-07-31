@@ -87,7 +87,7 @@ const MAX_BOOPS: usize = 16;
 const LOOP_FILE_HEIGHT: f32 = 295.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
 
-const BOOP_TO_LOOP_MARGIN: f32 = 200.;
+const BOOP_TO_LOOP_MARGIN: f32 = 10.;
 const DEFAULT_BOOP_TRANSLATION: Vec3 = Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 0.);
 
 pub fn hoops_boops_loops_plugin(app: &mut App) {
@@ -185,7 +185,7 @@ impl Command for AddHoop {
         let outer_hoop_image = asset_server.load(planet.get_outer_hoop_path(hoop_count + 1));
         let inner_hoop_image = asset_server.load(planet.get_inner_hoop_path(hoop_count + 1));
 
-        let HOOP_SCALE: f32 = 0.59;
+        const HOOP_SCALE: f32 = 0.59;
         let outer_hoop = world
             .spawn((
                 Sprite {
@@ -195,9 +195,9 @@ impl Command for AddHoop {
                 Transform {
                     scale: Vec3::new(1., 1., 1.) * HOOP_SCALE, // Scale gotten
                     // from playing around in gimp to get the hoops to fit
+                    translation: Vec3::new(0., 0., 1.),
                     ..default()
                 },
-                ZIndex(1),
             ))
             .id();
 
@@ -209,10 +209,10 @@ impl Command for AddHoop {
                 },
                 Transform {
                     scale: Vec3::new(1., 1., 1.) * HOOP_SCALE, // Scale gotten
+                    translation: Vec3::new(0., 0., -1.),
                     // from playing around in gimp to get the hoops to fit
                     ..default()
                 },
-                ZIndex(-1),
             ))
             .id();
 
@@ -238,7 +238,7 @@ impl Command for AddBoop {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
-        const BOOP_SCALE: f32 = 0.1;
+        const BOOP_SCALE: f32 = 0.03;
 
         let new_boop = world
             .spawn((
