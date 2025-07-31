@@ -2,7 +2,6 @@
 /// loop because its a keyword
 use bevy::prelude::*;
 use rand::Rng;
-use std::ops::Range;
 
 #[derive(Component)]
 struct Boop {
@@ -16,7 +15,7 @@ struct Hoop {
     r#loop: Entity,
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 struct Loop {
     boops: Vec<Entity>,
     hoops: Vec<Entity>,
@@ -49,7 +48,19 @@ impl Command for SpawnLoop {
     // Spawns a loop with with 1 boop and 1 hoop at the position of SpawnLoop.0
     // Hoops and Loops will be children of the loop (along with being kept track of in Loops.boops/Loops.hoops) so that their transform is relative to the Loop
 
-    fn apply(self, world: &mut World) {}
+    fn apply(self, world: &mut World) {
+        let _ = world.run_system_cached(
+            |mut commands: Commands, asset_server: ResMut<AssetServer>| {
+                let mut transform: Transform = Transform::default();
+                transform.scale *= 0.15;
+                commands.spawn((
+                    Loop::default(),
+                    Sprite::from_image(load_random_variant("loop", &asset_server, 1, 5)),
+                    transform,
+                ));
+            },
+        );
+    }
 }
 
 /// Custom EntityCommand that adds a hoop to a loop
@@ -65,12 +76,15 @@ impl EntityCommand for AddBoop {
     fn apply(self, entity: EntityWorldMut) {}
 }
 
-/// Load randomly "file-#.svg" with the # being replaced by a random number from range.
+/// Load randomly "file-#.svg" with the # being replaced by a random number from start to end
+/// inclusive on both ends
 fn load_random_variant(
-    file: String,
-    range: Range<u32>,
+    file_name: &'static str,
     asset_server: &AssetServer,
+    start: u32,
+    end: u32,
 ) -> Handle<Image> {
     let mut rng = rand::rng();
-    asset_server.load("file-".to_string() + &rng.random_range(range).to_string() + ".svg")
+    asset_server
+        .load(file_name.to_owned() + "-" + &rng.random_range(start..=end).to_string() + ".png")
 }
