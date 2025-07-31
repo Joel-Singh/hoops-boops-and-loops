@@ -6,6 +6,8 @@ use hoops_boops_loops::{Planet, SpawnLoop, hoops_boops_loops_plugin};
 mod background;
 use background::background_plugin;
 
+mod loot;
+
 fn main() {
     App::new()
         .add_plugins((
