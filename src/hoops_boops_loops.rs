@@ -8,16 +8,22 @@ use std::f32::consts::PI;
 #[derive(Component)]
 struct Boop {
     r#loop: Entity,
+    in_hoop: bool,
+}
+
+/// Rotates entities in an orbit around their Transform origin (which could be their parents)
+// from `starting_position`
+#[derive(Component)]
+struct Orbit {
     /// In Radians from 0 to 2*PI
     current_loop_position: f32,
-    in_hoop: bool,
+    starting_position: Vec2, // Will determine how far away the entitiy will be
 }
 
 impl Default for Boop {
     fn default() -> Self {
         Boop {
             r#loop: Entity::PLACEHOLDER,
-            current_loop_position: 0.,
             in_hoop: false,
         }
     }
@@ -89,38 +95,38 @@ const LOOP_FILE_HEIGHT: f32 = 295.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
 
 const BOOP_TO_LOOP_MARGIN: f32 = 10.;
-const DEFAULT_BOOP_TRANSLATION: Vec3 = Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 0.);
+const DEFAULT_BOOP_TRANSLATION: Vec2 = Vec2::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN);
 
 pub fn hoops_boops_loops_plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
-        (move_boops_forward, position_boops, get_loot_on_boop_in_hoop).chain(),
+        (move_boops_forward, orbit, get_loot_on_boop_in_hoop).chain(),
     );
 }
 
-/// Positions boops according to Boop::current_loop_position
-fn position_boops(boop_q: Query<(&mut Transform, &Boop)>) {
-    for boop in boop_q {
-        let mut transform = boop.0;
-        let boop = boop.1;
+/// Positions the transform of an orbit according to Orbit::current_loop_position
+fn orbit(orbit_q: Query<(&mut Transform, &Orbit)>) {
+    for orbit in orbit_q {
+        let mut transform = orbit.0;
+        let orbit = orbit.1;
 
-        transform.translation = DEFAULT_BOOP_TRANSLATION;
+        transform.translation = orbit.starting_position.extend(transform.translation.z);
         transform.rotate_around(
             Vec3::ZERO,
-            Quat::from_rotation_z(boop.current_loop_position),
+            Quat::from_rotation_z(orbit.current_loop_position),
         );
     }
 }
 
-/// Moves boops forwards by incrementing Boop::current_loop_position, modulating it to keep it
+/// Moves boops forwards by incrementing their Orbit::current_loop_position modulating it to keep it
 /// between 0 and 2PI
-fn move_boops_forward(boops: Query<&mut Boop>, time: Res<Time>) {
+fn move_boops_forward(boops: Query<&mut Orbit, With<Boop>>, time: Res<Time>) {
     const BOOP_SPEED: f32 = 1.2;
-    for mut boop in boops {
+    for mut orbit in boops {
         let increase = BOOP_SPEED * time.delta_secs();
-        boop.current_loop_position += increase;
-        boop.current_loop_position %= 2. * PI;
-        boop.current_loop_position;
+        orbit.current_loop_position += increase;
+        orbit.current_loop_position %= 2. * PI;
+        orbit.current_loop_position;
     }
 }
 
@@ -280,7 +286,7 @@ impl Command for AddBoop {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
-        const BOOP_SCALE: f32 = 0.03;
+        const BOOP_SCALE: f32 = 0.1;
 
         let new_boop = world
             .spawn((
@@ -293,6 +299,10 @@ impl Command for AddBoop {
                 Boop {
                     r#loop,
                     ..default()
+                },
+                Orbit {
+                    current_loop_position: 0.,
+                    starting_position: DEFAULT_BOOP_TRANSLATION,
                 },
             ))
             .id();
