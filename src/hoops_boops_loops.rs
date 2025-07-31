@@ -130,8 +130,10 @@ impl Command for AddHoop {
         r#loop.hoops.push(new_hoop);
 
         let mut new_hoop_transform = world.get_mut::<Transform>(new_hoop).unwrap();
-        new_hoop_transform.rotation =
-            Quat::from_rotation_z(2. * PI * (hoop_count as f32 / MAX_HOOPS as f32));
+        new_hoop_transform.rotate_around(
+            Vec3::ZERO,
+            Quat::from_rotation_z(2. * PI * ((hoop_count as f32 + 1.) / MAX_HOOPS as f32 + 1.)),
+        );
     }
 }
 
