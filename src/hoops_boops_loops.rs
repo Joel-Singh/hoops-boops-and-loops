@@ -28,10 +28,34 @@ struct Hoop {
     r#loop: Entity,
 }
 
-#[derive(Component, Default)]
+/// Corresponds to the different planet sprites since each hoop is colored to their specific planet
+pub enum Planet {
+    One,
+    Two,
+    Three,
+    Four,
+    Five,
+    Six,
+}
+
+impl Planet {
+    fn get_sprite(&self) -> &'static str {
+        match self {
+            Planet::One => "loop-1.png",
+            Planet::Two => "loop-2.png",
+            Planet::Three => "loop-3.png",
+            Planet::Four => "loop-4.png",
+            Planet::Five => "loop-5.png",
+            Planet::Six => "loop-6.png",
+        }
+    }
+}
+
+#[derive(Component)]
 struct Loop {
     boops: Vec<Entity>,
     hoops: Vec<Entity>,
+    planet: Planet,
 }
 
 const MAX_HOOPS: usize = 8;
@@ -85,7 +109,10 @@ fn move_boops_forward(boops: Query<&mut Boop>, time: Res<Time>) {
 /// Increments loot by 1 whenever a boop enters a hoop
 fn get_loot_on_boop_in_hoop() {}
 
-pub struct SpawnLoop(pub Vec2);
+pub struct SpawnLoop {
+    pub position: Vec2,
+    pub planet: Planet,
+}
 
 impl Command for SpawnLoop {
     // Spawns a loop with with 1 boop and 1 hoop at the position of SpawnLoop.0
@@ -93,7 +120,7 @@ impl Command for SpawnLoop {
 
     fn apply(self, world: &mut World) {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        let loop_image = load_random_variant("loop", &asset_server, 1, 6);
+        let loop_image = asset_server.load(self.planet.get_sprite());
 
         let mut commands = world.commands();
 
@@ -103,11 +130,15 @@ impl Command for SpawnLoop {
             .spawn((
                 Sprite::from_image(loop_image),
                 Transform {
-                    translation: self.0.extend(0.0),
+                    translation: self.position.extend(0.0),
                     scale: Transform::default().scale * LOOP_SCALE,
                     ..default()
                 },
-                Loop::default(),
+                Loop {
+                    boops: Vec::default(),
+                    hoops: Vec::default(),
+                    planet: self.planet,
+                },
             ))
             .id();
 

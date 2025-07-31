@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 
 mod hoops_boops_loops;
-use hoops_boops_loops::{SpawnLoop, hoops_boops_loops_plugin};
+use hoops_boops_loops::{Planet, SpawnLoop, hoops_boops_loops_plugin};
 
 mod background;
 use background::background_plugin;
@@ -23,5 +23,8 @@ fn setup_camera(mut commands: Commands) {
 }
 
 fn spawn_loop(mut commands: Commands) {
-    commands.queue(SpawnLoop(Vec2::ZERO));
+    commands.queue(SpawnLoop {
+        position: Vec2::ZERO,
+        planet: Planet::Two,
+    });
 }
