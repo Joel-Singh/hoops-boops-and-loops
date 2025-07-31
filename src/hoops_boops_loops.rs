@@ -185,7 +185,6 @@ impl Command for AddHoop {
         let outer_hoop_image = asset_server.load(planet.get_outer_hoop_path(hoop_count + 1));
         let inner_hoop_image = asset_server.load(planet.get_inner_hoop_path(hoop_count + 1));
 
-        const HOOP_SCALE: f32 = 0.59;
         let outer_hoop = world
             .spawn((
                 Sprite {
@@ -193,8 +192,6 @@ impl Command for AddHoop {
                     ..default()
                 },
                 Transform {
-                    scale: Vec3::new(1., 1., 1.) * HOOP_SCALE, // Scale gotten
-                    // from playing around in gimp to get the hoops to fit
                     translation: Vec3::new(0., 0., 1.),
                     ..default()
                 },
@@ -208,9 +205,7 @@ impl Command for AddHoop {
                     ..default()
                 },
                 Transform {
-                    scale: Vec3::new(1., 1., 1.) * HOOP_SCALE, // Scale gotten
                     translation: Vec3::new(0., 0., -1.),
-                    // from playing around in gimp to get the hoops to fit
                     ..default()
                 },
             ))
