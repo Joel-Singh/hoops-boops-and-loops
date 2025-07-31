@@ -125,7 +125,7 @@ impl Command for AddHoop {
         let mut r#loop = r#loop.get_mut::<Loop>().unwrap();
         let hoop_count = r#loop.hoops.len();
         if hoop_count >= MAX_HOOPS {
-            panic!();
+            panic!("Added a hoop to a loop that already has max hoops");
         }
         r#loop.hoops.push(new_hoop);
 
@@ -147,12 +147,10 @@ impl Command for AddBoop {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
-        let mut commands = world.commands();
-
         const BOOP_SCALE: f32 = 0.1;
         const BOOP_TO_LOOP_MARGIN: f32 = 70.;
 
-        let new_boop = commands
+        let new_boop = world
             .spawn((
                 Sprite::from_image(boop_image),
                 Transform {
@@ -167,17 +165,17 @@ impl Command for AddBoop {
             ))
             .id();
 
-        commands
-            .entity(r#loop)
-            .entry::<Loop>()
-            .and_modify(move |mut r#loop| {
-                if r#loop.boops.len() >= MAX_BOOPS {
-                    panic!();
-                }
-                r#loop.boops.push(new_boop);
-            });
+        let mut r#loop = world.entity_mut(r#loop);
+        r#loop.add_child(new_boop);
 
-        commands.entity(r#loop).add_child(new_boop);
+        let mut r#loop = r#loop.get_mut::<Loop>().unwrap();
+        let boop_count = r#loop.boops.len();
+
+        if boop_count >= MAX_BOOPS {
+            panic!("Added a boop to a loop that already has max boops");
+        }
+
+        r#loop.boops.push(new_boop);
     }
 }
 
