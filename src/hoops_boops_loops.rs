@@ -1,7 +1,6 @@
 /// This module handles the core logic of each Loop. Note that a "r#" had to be prepended when using
 /// loop because its a keyword
 use bevy::prelude::*;
-use bevy::sprite::Anchor;
 use rand::Rng;
 use std::f32::consts::PI;
 
@@ -29,6 +28,7 @@ struct Hoop {
 }
 
 /// Corresponds to the different planet sprites since each hoop is colored to their specific planet
+#[derive(Copy, Clone)]
 pub enum Planet {
     One,
     Two,
@@ -39,30 +39,50 @@ pub enum Planet {
 }
 
 impl Planet {
-    fn get_sprite(&self) -> &'static str {
+    fn get_number(&self) -> String {
         match self {
-            Planet::One => "loop-1.png",
-            Planet::Two => "loop-2.png",
-            Planet::Three => "loop-3.png",
-            Planet::Four => "loop-4.png",
-            Planet::Five => "loop-5.png",
-            Planet::Six => "loop-6.png",
+            Planet::One => "1".to_string(),
+            Planet::Two => "2".to_string(),
+            Planet::Three => "3".to_string(),
+            Planet::Four => "4".to_string(),
+            Planet::Five => "5".to_string(),
+            Planet::Six => "6".to_string(),
         }
+    }
+
+    fn get_sprite_path(&self) -> String {
+        return "loop-".to_string() + &self.get_number() + &".png";
+    }
+
+    fn get_inner_hoop_path(&self, count: i32) -> String {
+        let number = self.get_number();
+        return "hoops/loop-".to_string()
+            + &number
+            + &"/inner-half-"
+            + &count.to_string()
+            + &".png";
+    }
+
+    fn get_outer_hoop_path(&self, count: i32) -> String {
+        let number = self.get_number();
+        return "hoops/loop-".to_string()
+            + &number
+            + &"/outer-half-"
+            + &count.to_string()
+            + &".png";
     }
 }
 
 #[derive(Component)]
 struct Loop {
     boops: Vec<Entity>,
-    hoops: Vec<Entity>,
+    hoop_count: i32,
     planet: Planet,
 }
 
-const MAX_HOOPS: usize = 8;
+/// The max number of hoops
+const MAX_HOOPS: i32 = 8;
 const MAX_BOOPS: usize = 16;
-/// The max number of hoop
-const INITIAL_HOOP_POSITION: Rot2 = Rot2::FRAC_PI_8;
-/// The initial position of the first hoop.
 
 const LOOP_FILE_HEIGHT: f32 = 295.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
@@ -120,11 +140,11 @@ impl Command for SpawnLoop {
 
     fn apply(self, world: &mut World) {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        let loop_image = asset_server.load(self.planet.get_sprite());
+        let loop_image = asset_server.load(self.planet.get_sprite_path());
 
         let mut commands = world.commands();
 
-        const LOOP_SCALE: f32 = 0.15;
+        const LOOP_SCALE: f32 = 0.8;
 
         let r#loop = commands
             .spawn((
@@ -136,9 +156,10 @@ impl Command for SpawnLoop {
                 },
                 Loop {
                     boops: Vec::default(),
-                    hoops: Vec::default(),
+                    hoop_count: 0,
                     planet: self.planet,
                 },
+                ZIndex(-2),
             ))
             .id();
 
@@ -148,50 +169,62 @@ impl Command for SpawnLoop {
 }
 
 /// Custom EntityCommand that adds a hoop to a loop
-/// The hoop is placed in the INITIAL_HOOP_POSITION, or else, 1/8 from the last one
 /// panics if you try to add a hoop to a loop that already has MAX_HOOPS or if the entity does not
 /// contain the Loop Component
 pub struct AddHoop(Entity);
 impl Command for AddHoop {
     fn apply(self, world: &mut World) {
+        let r#loop = world.entity_mut(self.0);
+
+        let r#loop_component = r#loop.get::<Loop>().unwrap();
+        let hoop_count = r#loop_component.hoop_count;
+        let planet = r#loop_component.planet;
+
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        let hoop_image = load_random_variant("hoop", &asset_server, 1, 5);
-        let r#loop = self.0;
 
-        const HOOP_SCALE: f32 = 0.3;
-        const HOOP_TO_LOOP_MARGIN: f32 = -10.;
+        let outer_hoop_image = asset_server.load(planet.get_outer_hoop_path(hoop_count + 1));
+        let inner_hoop_image = asset_server.load(planet.get_inner_hoop_path(hoop_count + 1));
 
-        let new_hoop = world
+        let HOOP_SCALE: f32 = 0.59;
+        let outer_hoop = world
             .spawn((
                 Sprite {
-                    image: hoop_image,
-                    anchor: Anchor::BottomCenter,
+                    image: outer_hoop_image,
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::default().with_y(LOOP_RADIUS + HOOP_TO_LOOP_MARGIN),
-                    scale: Transform::default().scale * HOOP_SCALE,
+                    scale: Vec3::new(1., 1., 1.) * HOOP_SCALE, // Scale gotten
+                    // from playing around in gimp to get the hoops to fit
                     ..default()
                 },
-                Hoop { r#loop },
+                ZIndex(1),
+            ))
+            .id();
+
+        let inner_hoop = world
+            .spawn((
+                Sprite {
+                    image: inner_hoop_image,
+                    ..default()
+                },
+                Transform {
+                    scale: Vec3::new(1., 1., 1.) * HOOP_SCALE, // Scale gotten
+                    // from playing around in gimp to get the hoops to fit
+                    ..default()
+                },
+                ZIndex(-1),
             ))
             .id();
 
         let mut r#loop = world.entity_mut(self.0);
-        r#loop.add_child(new_hoop);
+        r#loop.add_child(outer_hoop);
+        r#loop.add_child(inner_hoop);
 
         let mut r#loop = r#loop.get_mut::<Loop>().unwrap();
-        let hoop_count = r#loop.hoops.len();
-        if hoop_count >= MAX_HOOPS {
+        if r#loop.hoop_count >= MAX_HOOPS {
             panic!("Added a hoop to a loop that already has max hoops");
         }
-        r#loop.hoops.push(new_hoop);
-
-        let mut new_hoop_transform = world.get_mut::<Transform>(new_hoop).unwrap();
-        new_hoop_transform.rotate_around(
-            Vec3::ZERO,
-            Quat::from_rotation_z(2. * PI * ((hoop_count as f32 + 1.) / MAX_HOOPS as f32 + 1.)),
-        );
+        r#loop.hoop_count += 1;
     }
 }
 
