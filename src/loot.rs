@@ -17,5 +17,5 @@ pub fn show() {}
 
 /// Update the loot display
 pub fn update_loot_display(loot: Res<Loot>) {
-    dbg!(**loot);
+    // dbg!(**loot);
 }

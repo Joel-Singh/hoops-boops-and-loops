@@ -12,12 +12,13 @@ struct Boop {
 }
 
 /// Rotates entities in an orbit around their Transform origin (which could be their parents)
-// from `starting_position`
+/// from `starting_transform`
+/// REMEMBER, the transform will be reset the starting_transform on each tick
 #[derive(Component)]
 struct Orbit {
     /// In Radians from 0 to 2*PI
     current_loop_position: f32,
-    starting_position: Vec2, // Will determine how far away the entitiy will be
+    starting_transform: Transform, // Will determine how far away the entitiy will be
 }
 
 impl Default for Boop {
@@ -94,9 +95,6 @@ const MAX_BOOPS: usize = 16;
 const LOOP_FILE_HEIGHT: f32 = 295.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
 
-const BOOP_TO_LOOP_MARGIN: f32 = 10.;
-const DEFAULT_BOOP_TRANSLATION: Vec2 = Vec2::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN);
-
 pub fn hoops_boops_loops_plugin(app: &mut App) {
     app.add_systems(
         FixedUpdate,
@@ -110,7 +108,7 @@ fn orbit(orbit_q: Query<(&mut Transform, &Orbit)>) {
         let mut transform = orbit.0;
         let orbit = orbit.1;
 
-        transform.translation = orbit.starting_position.extend(transform.translation.z);
+        *transform = orbit.starting_transform;
         transform.rotate_around(
             Vec3::ZERO,
             Quat::from_rotation_z(orbit.current_loop_position),
@@ -286,23 +284,26 @@ impl Command for AddBoop {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
-        const BOOP_SCALE: f32 = 0.1;
+        const BOOP_SCALE: f32 = 0.3;
+        const BOOP_TO_LOOP_MARGIN: f32 = 12.;
+
+        let starting_transform = Transform {
+            translation: Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 0.),
+            scale: Transform::default().scale * BOOP_SCALE,
+            ..default()
+        };
 
         let new_boop = world
             .spawn((
                 Sprite::from_image(boop_image),
-                Transform {
-                    translation: Vec3::default().with_y(LOOP_RADIUS + BOOP_TO_LOOP_MARGIN),
-                    scale: Transform::default().scale * BOOP_SCALE,
-                    ..default()
-                },
+                starting_transform,
                 Boop {
                     r#loop,
                     ..default()
                 },
                 Orbit {
                     current_loop_position: 0.,
-                    starting_position: DEFAULT_BOOP_TRANSLATION,
+                    starting_transform,
                 },
             ))
             .id();
