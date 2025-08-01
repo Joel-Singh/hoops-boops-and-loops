@@ -34,8 +34,8 @@ fn spawn_loop(mut commands: Commands) {
         position: Vec2::ZERO,
         planet: Planet::Two,
         boop_prices: [
-            1, 5, 10, 20, 50, 100, 200, 300, 400, 800, 1000, 1200, 1500, 2000, 2500,
+            1, 5, 10, 20, 30, 50, 80, 100, 150, 200, 250, 300, 350, 400, 450,
         ],
-        hoop_prices: [5, 10, 20, 50, 100, 500, 1000],
+        hoop_prices: [1, 5, 10, 20, 30, 50, 80],
     });
 }
