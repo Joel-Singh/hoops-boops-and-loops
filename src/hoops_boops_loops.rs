@@ -147,7 +147,7 @@ fn move_boops_forward(boops: Query<&mut Orbit, With<Boop>>, time: Res<Time>) {
 
 /// Increments loot by 1 whenever a boop enters a hoop
 fn get_loot_on_boop_in_hoop(
-    mut boop_q: Query<(&Transform, &mut Boop, Entity)>,
+    mut boop_q: Query<(&Transform, &mut Boop)>,
     loop_q: Query<&Loop>,
     mut loot: ResMut<Loot>,
 
@@ -170,7 +170,7 @@ fn get_loot_on_boop_in_hoop(
 
     for r#loop in loop_q {
         for boop in r#loop.boops.clone() {
-            let (boop_trans, mut boop, boop_e) = boop_q.get_mut(boop).unwrap();
+            let (boop_trans, mut boop) = boop_q.get_mut(boop).unwrap();
 
             // i32 represents an index in Loop::hoop_sprites
             let mut in_hoop: Option<i32> = None;
