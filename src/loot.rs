@@ -1,4 +1,8 @@
+mod tweens;
+
 use bevy::prelude::*;
+use bevy_tweening::Animator;
+use tweens::slide_in_from_right_tween;
 
 /// main currency, used to buy more boops and hoops
 #[derive(Resource, Deref, DerefMut)]
@@ -11,6 +15,9 @@ struct LootDisplay;
 /// Marker struct for the entity that contains the Text of the LootDisplay representing current loot
 #[derive(Component)]
 struct CurrentLootText;
+
+/// The starting position left is off screen because it will slide in. See tweens::slide_in_from_right_tween
+const STARTING_LEFT_POSITION: Val = Val::Px(200.);
 
 pub fn loot_plugin(app: &mut App) {
     app.add_systems(Startup, spawn_display)
@@ -39,6 +46,7 @@ pub fn spawn_display(mut commands: Commands, asset_server: Res<AssetServer>) {
                     .with_top(Val::Px(30.)),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
+                left: STARTING_LEFT_POSITION, // For use with sliding animation
                 ..default()
             },
             BackgroundColor(Color::WHITE.with_alpha(0.1)),
@@ -85,7 +93,8 @@ pub fn spawn_display(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .entity(loot_display)
-        .add_children(&[loot_symbol, loot_text_container]);
+        .add_children(&[loot_symbol, loot_text_container])
+        .insert(Animator::new(slide_in_from_right_tween()));
 }
 
 /// Update the loot display
