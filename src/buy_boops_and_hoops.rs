@@ -45,14 +45,18 @@ pub fn buy_boops_and_hoops_plugin(app: &mut App) {
 }
 
 /// Creates a moon button that buys boops
-pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mut World) {
-    let asset_server = world.get_resource::<AssetServer>().unwrap();
+pub fn create_buy_boop_button(
+    r#loop: Entity,
+    boop_prices: [i32; 15],
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+) -> Entity {
     let moon_image = asset_server.load("moon-btn.png");
     let rocket_image = asset_server.load("buy-boop-showcase.png");
     let loot_symbol_image = asset_server.load("loot-symbol.png");
     let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
 
-    let buy_boop_btn = world
+    let buy_boop_btn = commands
         .spawn((
             Sprite::from_image(moon_image),
             Orbit {
@@ -66,7 +70,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         ))
         .id();
 
-    let buy_boop_showcase = world
+    let buy_boop_showcase = commands
         .spawn((
             Sprite::from_image(rocket_image),
             Transform {
@@ -81,7 +85,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         .id();
 
     const LOOT_SYMBOL_SCALE: f32 = 0.05;
-    let loot_symbol = world
+    let loot_symbol = commands
         .spawn((
             Sprite::from_image(loot_symbol_image),
             Transform {
@@ -96,7 +100,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         ))
         .id();
 
-    let text = world
+    let text = commands
         .spawn((
             PriceText,
             Text2d::new(i32_to_display_str(boop_prices[0])),
@@ -117,8 +121,8 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         ))
         .id();
 
-    world
-        .entity_mut(buy_boop_btn)
+    commands
+        .entity(buy_boop_btn)
         .add_children(&[buy_boop_showcase, loot_symbol, text])
         .insert(MoonBtn {
             price_list: boop_prices.to_vec(),
@@ -128,7 +132,9 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         })
         .observe(buy_new_x_on_click::<AddBoop>);
 
-    world.entity_mut(r#loop).add_child(buy_boop_btn);
+    commands.entity(r#loop).add_child(buy_boop_btn);
+
+    buy_boop_btn
 }
 
 /// Creates a hoop button that buys hoops
@@ -136,15 +142,15 @@ pub fn create_buy_hoop_button(
     r#loop: Entity,
     planet: Planet,
     hoop_prices: [i32; 8],
-    world: &mut World,
-) {
-    let asset_server = world.get_resource::<AssetServer>().unwrap();
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+) -> Entity {
     let moon_image = asset_server.load("moon-btn.png");
     let hoop_showcase = asset_server.load(planet.get_hoop_showcase_path());
     let loot_symbol_image = asset_server.load("loot-symbol.png");
     let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
 
-    let buy_hoop_btn = world
+    let buy_hoop_btn = commands
         .spawn((
             Sprite::from_image(moon_image),
             Orbit {
@@ -158,7 +164,7 @@ pub fn create_buy_hoop_button(
         ))
         .id();
 
-    let buy_hoop_showcase = world
+    let buy_hoop_showcase = commands
         .spawn((
             Sprite::from_image(hoop_showcase),
             Transform {
@@ -173,7 +179,7 @@ pub fn create_buy_hoop_button(
         .id();
 
     const LOOT_SYMBOL_SCALE: f32 = 0.05;
-    let loot_symbol = world
+    let loot_symbol = commands
         .spawn((
             Sprite::from_image(loot_symbol_image),
             Transform {
@@ -188,7 +194,7 @@ pub fn create_buy_hoop_button(
         ))
         .id();
 
-    let text = world
+    let text = commands
         .spawn((
             Text2d::new(i32_to_display_str(hoop_prices[0])),
             TextFont {
@@ -208,8 +214,8 @@ pub fn create_buy_hoop_button(
         ))
         .id();
 
-    world
-        .entity_mut(buy_hoop_btn)
+    commands
+        .entity(buy_hoop_btn)
         .add_children(&[buy_hoop_showcase, loot_symbol, text])
         .insert(MoonBtn {
             price_list: hoop_prices.to_vec(),
@@ -219,7 +225,9 @@ pub fn create_buy_hoop_button(
         })
         .observe(buy_new_x_on_click::<AddHoop>);
 
-    world.entity_mut(r#loop).add_child(buy_hoop_btn);
+    commands.entity(r#loop).add_child(buy_hoop_btn);
+
+    buy_hoop_btn
 }
 
 /// Advance the moon btns orbit, wrapping at 2. * PI

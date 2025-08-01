@@ -216,49 +216,54 @@ fn get_loot_on_boop_in_hoop(
     }
 }
 
-pub struct SpawnLoop {
+pub struct LoopInfo {
     pub position: Vec2,
     pub planet: Planet,
     pub boop_prices: [i32; 15],
     pub hoop_prices: [i32; 8],
 }
 
-impl Command for SpawnLoop {
-    // Spawns a loop with with 1 boop and 1 hoop at the position of SpawnLoop.0
-    // Hoops and Loops will be children of the loop (along with being kept track of in Loops.boops/Loops.hoops) so that their transform is relative to the Loop
+/// Spawns a loop, returning the loop, buy boop btn, and buy hoop btn, in that order
+pub fn spawn_loop(
+    loop_info: LoopInfo,
+    mut commands: &mut Commands,
+    asset_server: &AssetServer,
+) -> (Entity, Entity, Entity) {
+    let loop_image = asset_server.load(loop_info.planet.get_sprite_path());
 
-    fn apply(self, mut world: &mut World) {
-        let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        let loop_image = asset_server.load(self.planet.get_sprite_path());
+    const LOOP_SCALE: f32 = 0.8;
 
-        let mut commands = world.commands();
+    let r#loop = commands
+        .spawn((
+            Sprite::from_image(loop_image),
+            Transform {
+                translation: loop_info.position.extend(0.0),
+                scale: Transform::default().scale * LOOP_SCALE,
+                ..default()
+            },
+            Loop {
+                boops: Vec::default(),
+                hoop_count: 0,
+                hoop_sprites: Vec::default(),
+                planet: loop_info.planet,
+            },
+            ZIndex(-2),
+        ))
+        .id();
 
-        const LOOP_SCALE: f32 = 0.8;
+    commands.queue(AddBoop(r#loop));
+    commands.queue(AddHoop(r#loop));
 
-        let r#loop = commands
-            .spawn((
-                Sprite::from_image(loop_image),
-                Transform {
-                    translation: self.position.extend(0.0),
-                    scale: Transform::default().scale * LOOP_SCALE,
-                    ..default()
-                },
-                Loop {
-                    boops: Vec::default(),
-                    hoop_count: 0,
-                    hoop_sprites: Vec::default(),
-                    planet: self.planet,
-                },
-                ZIndex(-2),
-            ))
-            .id();
+    let boop = create_buy_boop_button(r#loop, loop_info.boop_prices, &mut commands, asset_server);
+    let hoop = create_buy_hoop_button(
+        r#loop,
+        loop_info.planet,
+        loop_info.hoop_prices,
+        &mut commands,
+        asset_server,
+    );
 
-        commands.queue(AddBoop(r#loop));
-        commands.queue(AddHoop(r#loop));
-
-        create_buy_boop_button(r#loop, self.boop_prices, &mut world);
-        create_buy_hoop_button(r#loop, self.planet, self.hoop_prices, &mut world);
-    }
+    (r#loop, boop, hoop)
 }
 
 /// Custom EntityCommand that adds a hoop to a loop
