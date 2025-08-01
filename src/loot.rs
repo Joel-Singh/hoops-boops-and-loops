@@ -28,10 +28,22 @@ pub fn loot_plugin(app: &mut App) {
         .insert_resource(Loot(0));
 }
 
-/// Show the the loot counter, with bevy easings so it doesn't abruptly show
-pub fn show() {}
+/// Wrap the system in a custom command for easier calling
+pub struct ShowDisplay;
+impl Command for ShowDisplay {
+    fn apply(self, world: &mut World) {
+        let _ = world.run_system_cached(show_display);
+    }
+}
 
-pub fn spawn_display(mut commands: Commands, asset_server: Res<AssetServer>) {
+/// Make the loot counter visible by sliding it in from the right with a tween
+fn show_display(loot_display: Single<Entity, With<LootDisplay>>, mut commands: Commands) {
+    commands
+        .entity(*loot_display)
+        .insert(Animator::new(slide_in_from_right_tween()));
+}
+
+fn spawn_display(mut commands: Commands, asset_server: Res<AssetServer>) {
     let loot_symbol = asset_server.load("loot-symbol.png");
     let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
 
@@ -93,8 +105,7 @@ pub fn spawn_display(mut commands: Commands, asset_server: Res<AssetServer>) {
 
     commands
         .entity(loot_display)
-        .add_children(&[loot_symbol, loot_text_container])
-        .insert(Animator::new(slide_in_from_right_tween()));
+        .add_children(&[loot_symbol, loot_text_container]);
 }
 
 /// Update the loot display

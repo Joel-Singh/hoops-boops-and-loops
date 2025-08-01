@@ -32,7 +32,7 @@ fn main() {
             TweeningPlugin,
             soundtrack_plugin,
         ))
-        .add_systems(Startup, (setup_camera, spawn_loop))
+        .add_systems(Startup, (setup_camera, spawn_loop, show_loot_display))
         .run();
 }
 
@@ -50,4 +50,8 @@ fn spawn_loop(mut commands: Commands) {
         ],
         hoop_prices: [1, 5, 10, 20, 30, 50, 100, 200],
     });
+}
+
+fn show_loot_display(mut commands: Commands) {
+    commands.queue(loot::ShowDisplay);
 }
