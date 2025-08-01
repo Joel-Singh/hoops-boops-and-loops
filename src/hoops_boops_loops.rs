@@ -3,8 +3,14 @@
 use crate::buy_boops_and_hoops::create_orbit_moon_buttons;
 use crate::loot::Loot;
 use bevy::prelude::*;
+use bevy_tweening::Animator;
+use bevy_tweening::RepeatCount;
+use bevy_tweening::RepeatStrategy;
+use bevy_tweening::Tween;
+use bevy_tweening::lens::SpriteColorLens;
 use rand::Rng;
 use std::f32::consts::PI;
+use std::time::Duration;
 
 #[derive(Component)]
 struct Boop {
@@ -86,6 +92,8 @@ impl Planet {
 struct Loop {
     boops: Vec<Entity>,
     hoop_count: i32,
+    /// The hoop_sprites.0 is outer and hoop_sprites.1 is inner
+    hoop_sprites: Vec<(Entity, Entity)>,
     planet: Planet,
 }
 
@@ -131,9 +139,11 @@ fn move_boops_forward(boops: Query<&mut Orbit, With<Boop>>, time: Res<Time>) {
 
 /// Increments loot by 1 whenever a boop enters a hoop
 fn get_loot_on_boop_in_hoop(
-    mut boop_q: Query<(&Transform, &mut Boop)>,
+    mut boop_q: Query<(&Transform, &mut Boop, Entity)>,
     loop_q: Query<&Loop>,
     mut loot: ResMut<Loot>,
+
+    mut commands: Commands,
 ) {
     // counterclockwise from the top left
     let hoop_positions: [Vec2; 8] = [
@@ -151,9 +161,10 @@ fn get_loot_on_boop_in_hoop(
 
     for r#loop in loop_q {
         for boop in r#loop.boops.clone() {
-            let (boop_trans, mut boop) = boop_q.get_mut(boop).unwrap();
+            let (boop_trans, mut boop, boop_e) = boop_q.get_mut(boop).unwrap();
 
-            let mut in_any_hoop = false;
+            // i32 represents an index in Loop::hoop_sprites
+            let mut in_hoop: Option<i32> = None;
             for i in 0..r#loop.hoop_count {
                 let currently_in_hoop = boop_trans
                     .translation
@@ -161,17 +172,27 @@ fn get_loot_on_boop_in_hoop(
                     .distance(hoop_positions[i as usize])
                     <= on_hoop_tolerance;
                 if currently_in_hoop {
-                    in_any_hoop = true;
+                    in_hoop = Some(i);
                     break;
                 }
             }
 
-            if in_any_hoop && !boop.in_hoop {
+            if in_hoop.is_some() && !boop.in_hoop {
+                let in_hoop = in_hoop.unwrap();
+
                 **loot += 1;
                 boop.in_hoop = true;
+
+                commands
+                    .entity(r#loop.hoop_sprites[in_hoop as usize].0)
+                    .insert(Animator::new(brief_fade_to_white_tween()));
+
+                commands
+                    .entity(r#loop.hoop_sprites[in_hoop as usize].1)
+                    .insert(Animator::new(brief_fade_to_white_tween()));
             }
 
-            if !in_any_hoop {
+            if in_hoop.is_none() {
                 boop.in_hoop = false;
             }
         }
@@ -208,6 +229,7 @@ impl Command for SpawnLoop {
                 Loop {
                     boops: Vec::default(),
                     hoop_count: 0,
+                    hoop_sprites: Vec::default(),
                     planet: self.planet,
                 },
                 ZIndex(-2),
@@ -279,6 +301,7 @@ impl Command for AddHoop {
             panic!("Added a hoop to a loop that already has max hoops");
         }
         r#loop.hoop_count += 1;
+        r#loop.hoop_sprites.push((outer_hoop, inner_hoop));
     }
 }
 
@@ -341,4 +364,17 @@ fn load_random_variant(
     let mut rng = rand::rng();
     asset_server
         .load(file_name.to_owned() + "-" + &rng.random_range(start..=end).to_string() + ".png")
+}
+
+fn brief_fade_to_white_tween() -> Tween<Sprite> {
+    Tween::new(
+        EaseFunction::QuadraticInOut,
+        Duration::from_secs_f32(0.5),
+        SpriteColorLens {
+            start: Color::WHITE,
+            end: Srgba::rgb_u8(237, 235, 202).into(),
+        },
+    )
+    .with_repeat_count(RepeatCount::Finite(2))
+    .with_repeat_strategy(RepeatStrategy::MirroredRepeat)
 }
