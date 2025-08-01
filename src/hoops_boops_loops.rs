@@ -147,7 +147,7 @@ fn get_loot_on_boop_in_hoop(
         (66.5, 141.5).into(),
     ];
 
-    let on_hoop_tolerance = 5.;
+    let on_hoop_tolerance = 10.;
 
     for r#loop in loop_q {
         for boop in r#loop.boops.clone() {
