@@ -33,11 +33,10 @@ fn spawn_loop(mut commands: Commands) {
     commands.queue(SpawnLoop {
         position: Vec2::ZERO,
         planet: Planet::Two,
-        /// Prices can ONLY be whole tens, hundreds, or thousands for display purposes (see
-        /// buy_boops_and_hoops::i32_to_display_str)
+        // Prices can ONLY be whole tens, hundreds, or thousands for display purposes (see buy_boops_and_hoops::i32_to_display_str)
         boop_prices: [
             1, 5, 10, 20, 30, 50, 80, 100, 200, 300, 400, 500, 600, 700, 800,
         ],
-        hoop_prices: [1, 5, 10, 20, 30, 50, 100],
+        hoop_prices: [1, 5, 10, 20, 30, 50, 100, 200],
     });
 }

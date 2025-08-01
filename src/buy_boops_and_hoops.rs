@@ -17,11 +17,21 @@ struct MoonBtn {
     /// Goes to next price after buying,
     price_list: Vec<i32>,
     /// corresponds to an index in price_list
-    current_price: usize,
+    current_price_index: usize,
     /// The text that displays the price
     text: Entity,
     /// The loop that this btn buys for
     r#loop: Entity,
+}
+
+impl MoonBtn {
+    fn reached_max_buy_amount(&self) -> bool {
+        return (self.price_list.len() - 1) == self.current_price_index;
+    }
+
+    fn get_current_price(&self) -> i32 {
+        return self.price_list[self.current_price_index];
+    }
 }
 
 #[derive(Component)]
@@ -75,7 +85,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         .spawn((
             Sprite::from_image(loot_symbol_image),
             Transform {
-                translation: Vec3::new(-20., 0., 1.),
+                translation: Vec3::new(-25., 0., 1.),
                 scale: Vec3::splat(LOOT_SYMBOL_SCALE),
                 ..default()
             },
@@ -88,6 +98,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
 
     let text = world
         .spawn((
+            PriceText,
             Text2d::new(i32_to_display_str(boop_prices[0])),
             TextFont {
                 font: spacey_font,
@@ -111,7 +122,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
         .add_children(&[buy_boop_showcase, loot_symbol, text])
         .insert(MoonBtn {
             price_list: boop_prices.to_vec(),
-            current_price: 0,
+            current_price_index: 0,
             text,
             r#loop,
         })
@@ -124,7 +135,7 @@ pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mu
 pub fn create_buy_hoop_button(
     r#loop: Entity,
     planet: Planet,
-    hoop_prices: [i32; 7],
+    hoop_prices: [i32; 8],
     world: &mut World,
 ) {
     let asset_server = world.get_resource::<AssetServer>().unwrap();
@@ -166,7 +177,7 @@ pub fn create_buy_hoop_button(
         .spawn((
             Sprite::from_image(loot_symbol_image),
             Transform {
-                translation: Vec3::new(-20., 0., 1.),
+                translation: Vec3::new(-25., 0., 1.),
                 scale: Vec3::splat(LOOT_SYMBOL_SCALE),
                 ..default()
             },
@@ -202,7 +213,7 @@ pub fn create_buy_hoop_button(
         .add_children(&[buy_hoop_showcase, loot_symbol, text])
         .insert(MoonBtn {
             price_list: hoop_prices.to_vec(),
-            current_price: 0,
+            current_price_index: 0,
             text,
             r#loop,
         })
@@ -233,10 +244,15 @@ fn buy_new_x_on_click<T: Command>(
 {
     let (mut moon_btn, moon_btn_e) = moon_btn_q.get_mut(trigger.target).unwrap();
 
-    let current_price = moon_btn.price_list[moon_btn.current_price];
-    if **loot >= current_price {
-        **loot -= current_price;
-        moon_btn.current_price += 1;
+    if moon_btn.reached_max_buy_amount() {
+        unsuccessful_buy_animation_and_sound(moon_btn_e, &mut commands, &asset_server);
+        return;
+    }
+
+    let enough_loot = **loot >= moon_btn.get_current_price();
+    if enough_loot {
+        **loot -= moon_btn.get_current_price();
+        moon_btn.current_price_index += 1;
 
         commands.spawn((
             AudioPlayer::new(asset_server.load("successful_buy.wav")),
@@ -247,10 +263,14 @@ fn buy_new_x_on_click<T: Command>(
         ));
         commands.queue(T::from(moon_btn.r#loop));
 
-        let new_price = moon_btn.price_list[moon_btn.current_price];
-        commands
-            .entity(moon_btn.text)
-            .insert(Text2d::new(i32_to_display_str(new_price)));
+        if !moon_btn.reached_max_buy_amount() {
+            let new_price = moon_btn.get_current_price();
+            commands
+                .entity(moon_btn.text)
+                .insert(Text2d::new(i32_to_display_str(new_price)));
+        } else {
+            commands.entity(moon_btn.text).insert(Text2d::new("-"));
+        }
 
         let fade_in_blue_tween = Tween::new(
             EaseFunction::QuadraticInOut,
@@ -267,6 +287,14 @@ fn buy_new_x_on_click<T: Command>(
             .entity(moon_btn_e)
             .insert(Animator::new(fade_in_blue_tween));
     } else {
+        unsuccessful_buy_animation_and_sound(moon_btn_e, &mut commands, &asset_server);
+    }
+
+    fn unsuccessful_buy_animation_and_sound(
+        moon_btn_e: Entity,
+        commands: &mut Commands,
+        asset_server: &AssetServer,
+    ) {
         let fade_in_orange_tween = Tween::new(
             EaseFunction::QuadraticInOut,
             Duration::from_secs_f32(0.5),
@@ -292,8 +320,7 @@ fn buy_new_x_on_click<T: Command>(
     }
 }
 
-/// Converts i32 to a string to be displayed on the moon btns for price. Only supports numbers with
-/// a digit with leading zeroes and single digits up to 99,000. Will look not right otherwise.
+/// Converts i32 to a string to be displayed on the moon btns for price. Only supports whole single digits and whole tens, hundreds, and thousands up to 99000. Will panic otherwise.
 /// Uses h and k for abbreviations of 100 and 1000 respectively.
 fn i32_to_display_str(num: i32) -> String {
     if num > 99000 {
@@ -301,11 +328,25 @@ fn i32_to_display_str(num: i32) -> String {
     }
 
     if num >= 1000 {
-        return (num / 1000).to_string() + "k";
+        if (num % 1000) != 0 {
+            panic!("Not a whole number!");
+        }
+        return " ".to_string() + &(num / 1000).to_string() + "k";
     }
 
     if num >= 100 {
-        return (num / 100).to_string() + "h";
+        if (num % 100) != 0 {
+            panic!("Not a whole number!");
+        }
+        return " ".to_string() + &(num / 100).to_string() + "h";
+    }
+
+    if num >= 10 {
+        if (num % 10) != 0 {
+            panic!("Not a whole number!");
+        }
+
+        return " ".to_string() + &num.to_string();
     }
 
     num.to_string()

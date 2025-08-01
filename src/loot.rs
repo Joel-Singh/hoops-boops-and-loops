@@ -25,6 +25,6 @@ pub fn spawn_display(mut commands: Commands) {
 }
 
 /// Update the loot display
-pub fn update_loot_display(loot: Res<Loot>, mut text: Single<&mut Text, With<LootDisplay>>) {
+fn update_loot_display(loot: Res<Loot>, mut text: Single<&mut Text, With<LootDisplay>>) {
     text.0 = loot.to_string();
 }

@@ -210,7 +210,7 @@ pub struct SpawnLoop {
     pub position: Vec2,
     pub planet: Planet,
     pub boop_prices: [i32; 15],
-    pub hoop_prices: [i32; 7],
+    pub hoop_prices: [i32; 8],
 }
 
 impl Command for SpawnLoop {
