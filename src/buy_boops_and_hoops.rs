@@ -255,7 +255,7 @@ fn buy_new_x_on_click<T: Command>(
         moon_btn.current_price_index += 1;
 
         commands.spawn((
-            AudioPlayer::new(asset_server.load("successful_buy.wav")),
+            AudioPlayer::new(asset_server.load("successful-buy.ogg")),
             PlaybackSettings {
                 mode: PlaybackMode::Despawn,
                 ..default()
@@ -307,7 +307,7 @@ fn buy_new_x_on_click<T: Command>(
         .with_repeat_strategy(RepeatStrategy::MirroredRepeat);
 
         commands.spawn((
-            AudioPlayer::new(asset_server.load("unsuccessful_buy.wav")),
+            AudioPlayer::new(asset_server.load("unsuccessful-buy.ogg")),
             PlaybackSettings {
                 mode: PlaybackMode::Despawn,
                 ..default()
