@@ -5,11 +5,13 @@ mod background;
 mod buy_boops_and_hoops;
 mod hoops_boops_loops;
 mod loot;
+mod soundtrack;
 
 use background::background_plugin;
 use buy_boops_and_hoops::buy_boops_and_hoops_plugin;
 use hoops_boops_loops::{Planet, SpawnLoop, hoops_boops_loops_plugin};
 use loot::loot_plugin;
+use soundtrack::soundtrack_plugin;
 
 fn main() {
     App::new()
@@ -20,6 +22,7 @@ fn main() {
             loot_plugin,
             buy_boops_and_hoops_plugin,
             TweeningPlugin,
+            soundtrack_plugin,
         ))
         .add_systems(Startup, (setup_camera, spawn_loop))
         .run();
