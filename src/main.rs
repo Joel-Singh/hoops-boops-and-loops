@@ -1,4 +1,5 @@
 use bevy::prelude::*;
+use bevy::window::WindowResolution;
 use bevy_tweening::TweeningPlugin;
 
 mod background;
@@ -16,7 +17,14 @@ use soundtrack::soundtrack_plugin;
 fn main() {
     App::new()
         .add_plugins((
-            DefaultPlugins,
+            DefaultPlugins.set(WindowPlugin {
+                primary_window: Some(Window {
+                    resolution: WindowResolution::new(1366., 768.),
+                    title: "Hoops & Boops and don't forget about loops!".to_string(),
+                    ..default()
+                }),
+                ..default()
+            }),
             hoops_boops_loops_plugin,
             background_plugin,
             loot_plugin,
