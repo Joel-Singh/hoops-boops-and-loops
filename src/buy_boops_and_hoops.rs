@@ -293,28 +293,20 @@ fn buy_new_x_on_click<T: Command>(
 }
 
 /// Converts i32 to a string to be displayed on the moon btns for price. Only supports numbers with
-/// a digit with leading zeroes and single digits up to 99,000. Will panic otherwise.
+/// a digit with leading zeroes and single digits up to 99,000. Will look not right otherwise.
 /// Uses h and k for abbreviations of 100 and 1000 respectively.
 fn i32_to_display_str(num: i32) -> String {
-    if num < 10 {
-        return num.to_string();
-    }
-
     if num > 99000 {
         panic!("Tried to display too big of a number");
     }
 
-    if num % 10 == 0 {
-        return num.to_string();
-    }
-
-    if num % 100 == 0 {
-        return (num / 100).to_string() + "h";
-    }
-
-    if num % 1000 == 0 {
+    if num >= 1000 {
         return (num / 1000).to_string() + "k";
     }
 
-    panic!("Tried to display unsupported number");
+    if num >= 100 {
+        return (num / 100).to_string() + "h";
+    }
+
+    num.to_string()
 }
