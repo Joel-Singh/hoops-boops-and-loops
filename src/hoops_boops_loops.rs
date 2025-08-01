@@ -1,6 +1,6 @@
 /// This module handles the core logic of each Loop. Note that a "r#" had to be prepended when using
 /// loop because its a keyword
-use crate::buy_boops_and_hoops::create_orbit_moon_buttons;
+use crate::buy_boops_and_hoops::{create_buy_boop_button, create_buy_hoop_button};
 use crate::loot::Loot;
 use bevy::prelude::*;
 use bevy_tweening::Animator;
@@ -85,6 +85,13 @@ impl Planet {
             + &"/outer-half-"
             + &count.to_string()
             + &".png";
+    }
+
+    /// We need a different hoop showcase for each planet because they are colored for the
+    /// individual planet
+    pub fn get_hoop_showcase_path(&self) -> String {
+        let number = self.get_number();
+        return "buy-hoop-showcase/".to_string() + &number + &".png";
     }
 }
 
@@ -239,13 +246,8 @@ impl Command for SpawnLoop {
         commands.queue(AddBoop(r#loop));
         commands.queue(AddHoop(r#loop));
 
-        create_orbit_moon_buttons(
-            r#loop,
-            self.planet,
-            self.boop_prices,
-            self.hoop_prices,
-            &mut world,
-        );
+        create_buy_boop_button(r#loop, self.boop_prices, &mut world);
+        create_buy_hoop_button(r#loop, self.planet, self.hoop_prices, &mut world);
     }
 }
 
@@ -305,6 +307,13 @@ impl Command for AddHoop {
     }
 }
 
+// Used to allow for use in a generic
+impl From<Entity> for AddHoop {
+    fn from(entity: Entity) -> Self {
+        AddHoop(entity)
+    }
+}
+
 /// Custom EntityCommand that adds a boop to a loop
 /// panics if you try to add a boop to a loop that already has MAX_BOOPS
 /// Does not check if entity is a loop, behavior is undefined if so
@@ -350,6 +359,13 @@ impl Command for AddBoop {
         }
 
         r#loop.boops.push(new_boop);
+    }
+}
+
+// Used to allow for use in a generic
+impl From<Entity> for AddBoop {
+    fn from(entity: Entity) -> Self {
+        AddBoop(entity)
     }
 }
 

@@ -1,4 +1,4 @@
-use crate::hoops_boops_loops::{AddBoop, Orbit, Planet};
+use crate::hoops_boops_loops::{AddBoop, AddHoop, Orbit, Planet};
 use crate::loot::Loot;
 use bevy::audio::PlaybackMode;
 use bevy::color::palettes::basic::BLACK;
@@ -28,20 +28,14 @@ struct MoonBtn {
 /// Marker struct for Text2ds that show the price
 struct PriceText;
 
+const BUY_BOOP_STARTING_ORBIT: f32 = 0.30;
+
 pub fn buy_boops_and_hoops_plugin(app: &mut App) {
     app.add_systems(FixedUpdate, advance_moon_btn_orbits);
 }
 
-/// Creates a new boop and new hoop btn around the given loop
-pub fn create_orbit_moon_buttons(
-    r#loop: Entity,
-    planet: Planet,
-    boop_prices: [i32; 15],
-    hoop_prices: [i32; 7],
-    world: &mut World,
-) {
-    // Will attach observers to the NewBoopBtn and NewHoopBtn for the respective buy_new_* function.
-
+/// Creates a moon button that buys boops
+pub fn create_buy_boop_button(r#loop: Entity, boop_prices: [i32; 15], world: &mut World) {
     let asset_server = world.get_resource::<AssetServer>().unwrap();
     let moon_image = asset_server.load("moon-btn.png");
     let rocket_image = asset_server.load("buy-boop-showcase.png");
@@ -52,7 +46,7 @@ pub fn create_orbit_moon_buttons(
         .spawn((
             Sprite::from_image(moon_image),
             Orbit {
-                current_loop_position: 0.,
+                current_loop_position: BUY_BOOP_STARTING_ORBIT,
                 starting_transform: Transform {
                     translation: Vec3::new(0., 300., 0.),
                     ..default()
@@ -121,9 +115,100 @@ pub fn create_orbit_moon_buttons(
             text,
             r#loop,
         })
-        .observe(buy_new_boop_on_click);
+        .observe(buy_new_x_on_click::<AddBoop>);
 
     world.entity_mut(r#loop).add_child(buy_boop_btn);
+}
+
+/// Creates a hoop button that buys hoops
+pub fn create_buy_hoop_button(
+    r#loop: Entity,
+    planet: Planet,
+    hoop_prices: [i32; 7],
+    world: &mut World,
+) {
+    let asset_server = world.get_resource::<AssetServer>().unwrap();
+    let moon_image = asset_server.load("moon-btn.png");
+    let hoop_showcase = asset_server.load(planet.get_hoop_showcase_path());
+    let loot_symbol_image = asset_server.load("loot-symbol.png");
+    let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
+
+    let buy_hoop_btn = world
+        .spawn((
+            Sprite::from_image(moon_image),
+            Orbit {
+                current_loop_position: BUY_BOOP_STARTING_ORBIT + PI,
+                starting_transform: Transform {
+                    translation: Vec3::new(0., 300., 0.),
+                    ..default()
+                },
+            },
+            Pickable::default(),
+        ))
+        .id();
+
+    let buy_hoop_showcase = world
+        .spawn((
+            Sprite::from_image(hoop_showcase),
+            Transform {
+                translation: Vec3::new(0., 60., 1.),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+        ))
+        .id();
+
+    const LOOT_SYMBOL_SCALE: f32 = 0.05;
+    let loot_symbol = world
+        .spawn((
+            Sprite::from_image(loot_symbol_image),
+            Transform {
+                translation: Vec3::new(-20., 0., 1.),
+                scale: Vec3::splat(LOOT_SYMBOL_SCALE),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+        ))
+        .id();
+
+    let text = world
+        .spawn((
+            Text2d::new(i32_to_display_str(hoop_prices[0])),
+            TextFont {
+                font: spacey_font,
+                font_size: 40.,
+                ..default()
+            },
+            TextColor(BLACK.into()),
+            Transform {
+                translation: Vec3::new(20., 0., 0.),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+        ))
+        .id();
+
+    world
+        .entity_mut(buy_hoop_btn)
+        .add_children(&[buy_hoop_showcase, loot_symbol, text])
+        .insert(MoonBtn {
+            price_list: hoop_prices.to_vec(),
+            current_price: 0,
+            text,
+            r#loop,
+        })
+        .observe(buy_new_x_on_click::<AddHoop>);
+
+    world.entity_mut(r#loop).add_child(buy_hoop_btn);
 }
 
 /// Advance the moon btns orbit, wrapping at 2. * PI
@@ -136,14 +221,16 @@ fn advance_moon_btn_orbits(btns: Query<&mut Orbit, With<MoonBtn>>, time: Res<Tim
     }
 }
 
-// If enough loot, decrements loot, queues AddHoop, and updates the price text. Otherwise, makes a little *err* sound and turns orange briefly.
-fn buy_new_boop_on_click(
+// If enough loot, decrements loot, queues the T command which adds the new thing bought, and updates the price text. Otherwise, makes a little *err* sound and turns orange briefly.
+fn buy_new_x_on_click<T: Command>(
     trigger: Trigger<Pointer<Click>>,
     mut loot: ResMut<Loot>,
     mut moon_btn_q: Query<(&mut MoonBtn, Entity)>,
     mut commands: Commands,
     asset_server: Res<AssetServer>,
-) {
+) where
+    T: From<Entity>,
+{
     let (mut moon_btn, moon_btn_e) = moon_btn_q.get_mut(trigger.target).unwrap();
 
     let current_price = moon_btn.price_list[moon_btn.current_price];
@@ -158,7 +245,7 @@ fn buy_new_boop_on_click(
                 ..default()
             },
         ));
-        commands.queue(AddBoop(moon_btn.r#loop));
+        commands.queue(T::from(moon_btn.r#loop));
 
         let new_price = moon_btn.price_list[moon_btn.current_price];
         commands
@@ -204,9 +291,6 @@ fn buy_new_boop_on_click(
             .insert(Animator::new(fade_in_orange_tween));
     }
 }
-
-// If enough loot, decrements loot and calls the AddHoop function. Otherwise, makes a little *err* sound and turns orange briefly.
-fn buy_new_hoop_on_click() {}
 
 /// Converts i32 to a string to be displayed on the moon btns for price. Only supports numbers with
 /// a digit with leading zeroes and single digits up to 99,000. Will panic otherwise.
