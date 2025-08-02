@@ -60,10 +60,22 @@ pub fn scale_planet_up() -> Tween<Transform> {
 pub fn bring_moon_in_tween() -> Tween<Orbit> {
     Tween::new(
         EaseFunction::BackOut,
-        Duration::from_secs_f32(16.),
+        Duration::from_secs_f32(50.),
         OrbitStartingTransformYLens {
-            start: 700.,
+            start: 1000.,
             end: BUY_BOOP_STARTING_HEIGHT,
+        },
+    )
+}
+
+/// Tween that just waits for use with Tween::then
+pub fn wait_seconds(delay: f32) -> Tween<Orbit> {
+    Tween::new(
+        EaseFunction::BackOut,
+        Duration::from_secs_f32(delay),
+        OrbitStartingTransformYLens {
+            start: 1000.,
+            end: 1000.,
         },
     )
 }

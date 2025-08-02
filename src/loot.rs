@@ -2,7 +2,7 @@ mod tweens;
 
 use bevy::prelude::*;
 use bevy_tweening::Animator;
-use tweens::slide_in_from_right_tween;
+use tweens::*;
 
 /// main currency, used to buy more boops and hoops
 #[derive(Resource, Deref, DerefMut)]
@@ -38,9 +38,9 @@ impl Command for ShowDisplay {
 
 /// Make the loot counter visible by sliding it in from the right with a tween
 fn show_display(loot_display: Single<Entity, With<LootDisplay>>, mut commands: Commands) {
-    commands
-        .entity(*loot_display)
-        .insert(Animator::new(slide_in_from_right_tween()));
+    commands.entity(*loot_display).insert(Animator::new(
+        wait_seconds(8.).then(slide_in_from_right_tween()),
+    ));
 }
 
 fn spawn_display(mut commands: Commands, asset_server: Res<AssetServer>) {

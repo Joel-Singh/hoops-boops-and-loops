@@ -1,6 +1,7 @@
 mod tweens;
 
 use crate::hoops_boops_loops::{LoopInfo, Orbit, Planet, spawn_loop};
+use crate::loot;
 use crate::prices::*;
 use crate::titlescreen::*;
 use bevy::prelude::*;
@@ -79,6 +80,8 @@ fn transition_to_first_planet(
     commands.entity(r#loop).insert(Animator::new(
         center_first_planet().then(scale_planet_up().with_completed_system(bring_moon_btns_in)),
     ));
+
+    commands.queue(loot::ShowDisplay);
 }
 
 fn bring_moon_btns_in(mut commands: Commands, moon_btns: Res<MoonBtns>) {
@@ -92,6 +95,6 @@ fn bring_moon_btns_in(mut commands: Commands, moon_btns: Res<MoonBtns>) {
 
         commands
             .entity(btn)
-            .insert(Animator::new(bring_moon_in_tween()));
+            .insert(Animator::new(wait_seconds(5.).then(bring_moon_in_tween())));
     }
 }
