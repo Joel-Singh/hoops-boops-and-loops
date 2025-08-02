@@ -26,9 +26,8 @@ fn main() {
         .add_plugins((
             DefaultPlugins.set(WindowPlugin {
                 primary_window: Some(Window {
-                    resolution: WindowResolution::new(1366., 768.).with_scale_factor_override(1.0),
+                    resolution: WindowResolution::new(1366., 768.),
                     title: "Hoops & Boops and don't forget about loops!".to_string(),
-                    mode: WindowMode::BorderlessFullscreen(MonitorSelection::Current),
                     ..default()
                 }),
                 ..default()
