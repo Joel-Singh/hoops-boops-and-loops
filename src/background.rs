@@ -15,7 +15,11 @@ fn spawn_star_bg(mut commands: Commands, asset_server: ResMut<AssetServer>) {
     ));
 
     commands.spawn((
-        Sprite::from_image(asset_server.load("light-trail-bg-2.png")),
+        Sprite {
+            image: (asset_server.load("light-trail-bg-2.png")),
+            color: Color::WHITE.with_alpha(0.1),
+            ..default()
+        },
         Transform {
             translation: Vec3::new(0., 0., -99.),
             ..default()
