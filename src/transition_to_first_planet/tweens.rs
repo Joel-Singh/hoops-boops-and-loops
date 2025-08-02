@@ -1,4 +1,4 @@
-use crate::projection_scale_lens::ProjectionScaleLens;
+use super::FIRST_PLANET_INITIAL_SCALE;
 use crate::titlescreen::PLAY_BTN_LOCATION;
 use bevy::prelude::*;
 use bevy_tweening::lens::*;
@@ -16,24 +16,35 @@ pub fn fade_to_transparent() -> Tween<Sprite> {
     )
 }
 
-pub fn center_to_first_planet() -> Tween<Transform> {
+pub fn center_first_planet() -> Tween<Transform> {
     Tween::new(
         EaseFunction::SmoothStep,
         Duration::from_secs_f32(8.),
         TransformPositionLens {
-            start: Vec3::default(),
-            end: PLAY_BTN_LOCATION.extend(0.0),
+            start: PLAY_BTN_LOCATION.extend(0.0),
+            end: Vec3::splat(0.0),
         },
     )
 }
 
-pub fn zoom_camera_in() -> Tween<Projection> {
+pub fn scale_up() -> Tween<Transform> {
     Tween::new(
         EaseFunction::SmoothStep,
         Duration::from_secs_f32(8.),
-        ProjectionScaleLens {
-            start: 1.,
-            end: 1. / 4.,
+        TransformScaleLens {
+            start: Vec3::splat(1.),
+            end: Vec3::splat(3.),
+        },
+    )
+}
+
+pub fn scale_planet_up() -> Tween<Transform> {
+    Tween::new(
+        EaseFunction::SmoothStep,
+        Duration::from_secs_f32(8.),
+        TransformScaleLens {
+            start: Vec3::splat(FIRST_PLANET_INITIAL_SCALE),
+            end: Vec3::splat(1.),
         },
     )
 }

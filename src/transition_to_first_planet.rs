@@ -5,7 +5,7 @@ use crate::prices::*;
 use crate::titlescreen::*;
 use bevy::ecs::entity_disabling::Disabled;
 use bevy::prelude::*;
-use bevy_tweening::Animator;
+use bevy_tweening::{Animator, Tracks};
 
 use tweens::*;
 
@@ -20,11 +20,10 @@ impl Command for TransitionToFirstPlanet {
 }
 
 fn transition_to_first_planet(
-    camera: Single<Entity, With<Camera>>,
-
     titlescreen_btn: Single<Entity, With<TitlescreenBtn>>,
     titlescreen_art: Single<Entity, With<TitlescreenArt>>,
     titlescreen_moon: Single<Entity, With<TitlescreenMoon>>,
+    titlescreen_parent: Single<Entity, With<TitlescreenParent>>,
 
     mut commands: Commands,
     asset_server: Res<AssetServer>,
@@ -48,6 +47,8 @@ fn transition_to_first_planet(
             t.translation.z = -2.;
         });
 
+    commands.entity(*titlescreen_moon).despawn();
+
     commands
         .entity(boop_moon)
         .insert_recursive::<Children>(Disabled);
@@ -56,24 +57,19 @@ fn transition_to_first_planet(
         .insert_recursive::<Children>(Disabled);
 
     commands
+        .entity(*titlescreen_btn)
+        .insert(Animator::new(fade_to_transparent()));
+
+    commands
         .entity(*titlescreen_art)
         .insert(Animator::new(fade_to_transparent()));
 
     commands
-        .entity(*titlescreen_btn)
-        .insert(Animator::new(fade_to_transparent()));
+        .entity(*titlescreen_parent)
+        .insert(Animator::new(scale_up()));
 
-    commands.entity(*titlescreen_moon).despawn();
-
-    commands
-        .entity(*camera)
-        .insert(Animator::new(center_to_first_planet()));
-
-    commands
-        .entity(*camera)
-        .insert(Animator::new(zoom_camera_in()));
-
-    // Spawn the first planet scaled down with moon buttons hidden
-    // Fade out the play button + titlescreen art
-    // Transition the camera to the proper zoom and translation to see the first planet
+    commands.entity(r#loop).insert(Animator::new(Tracks::new([
+        scale_planet_up(),
+        center_first_planet(),
+    ])));
 }
