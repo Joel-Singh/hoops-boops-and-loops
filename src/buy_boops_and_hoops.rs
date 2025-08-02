@@ -48,93 +48,17 @@ pub fn buy_boops_and_hoops_plugin(app: &mut App) {
 pub fn create_buy_boop_button(
     r#loop: Entity,
     boop_prices: [i32; 15],
-    commands: &mut Commands,
+    mut commands: &mut Commands,
     asset_server: &AssetServer,
 ) -> Entity {
-    let moon_image = asset_server.load("moon-btn.png");
-    let rocket_image = asset_server.load("buy-boop-showcase.png");
-    let loot_symbol_image = asset_server.load("loot-symbol.png");
-    let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
-
-    let buy_boop_btn = commands
-        .spawn((
-            Sprite::from_image(moon_image),
-            Orbit {
-                current_loop_position: BUY_BOOP_STARTING_ORBIT,
-                starting_transform: Transform {
-                    translation: Vec3::new(0., 300., 0.),
-                    ..default()
-                },
-            },
-            Pickable::default(),
-        ))
-        .id();
-
-    let buy_boop_showcase = commands
-        .spawn((
-            Sprite::from_image(rocket_image),
-            Transform {
-                translation: Vec3::new(0., 60., 1.),
-                ..default()
-            },
-            Pickable {
-                should_block_lower: false,
-                is_hoverable: false,
-            },
-        ))
-        .id();
-
-    const LOOT_SYMBOL_SCALE: f32 = 0.05;
-    let loot_symbol = commands
-        .spawn((
-            Sprite::from_image(loot_symbol_image),
-            Transform {
-                translation: Vec3::new(-25., 0., 1.),
-                scale: Vec3::splat(LOOT_SYMBOL_SCALE),
-                ..default()
-            },
-            Pickable {
-                should_block_lower: false,
-                is_hoverable: false,
-            },
-        ))
-        .id();
-
-    let text = commands
-        .spawn((
-            PriceText,
-            Text2d::new(i32_to_display_str(boop_prices[0])),
-            TextFont {
-                font: spacey_font,
-                font_size: 40.,
-                ..default()
-            },
-            TextColor(BLACK.into()),
-            Transform {
-                translation: Vec3::new(20., 0., 0.),
-                ..default()
-            },
-            Pickable {
-                should_block_lower: false,
-                is_hoverable: false,
-            },
-        ))
-        .id();
-
-    commands
-        .entity(buy_boop_btn)
-        .add_children(&[buy_boop_showcase, loot_symbol, text])
-        .insert(MoonBtn {
-            price_list: boop_prices.to_vec(),
-            current_price_index: 0,
-            text,
-            r#loop,
-        })
-        .observe(buy_new_x_on_click::<AddBoop>);
-
-    commands.entity(r#loop).add_child(buy_boop_btn);
-
-    buy_boop_btn
+    create_buy_btn::<AddBoop>(
+        r#loop,
+        boop_prices.to_vec(),
+        &"buy-boop-showcase.png",
+        BUY_BOOP_STARTING_ORBIT,
+        &mut commands,
+        &asset_server,
+    )
 }
 
 /// Creates a hoop button that buys hoops
@@ -142,92 +66,17 @@ pub fn create_buy_hoop_button(
     r#loop: Entity,
     planet: Planet,
     hoop_prices: [i32; 8],
-    commands: &mut Commands,
+    mut commands: &mut Commands,
     asset_server: &AssetServer,
 ) -> Entity {
-    let moon_image = asset_server.load("moon-btn.png");
-    let hoop_showcase = asset_server.load(planet.get_hoop_showcase_path());
-    let loot_symbol_image = asset_server.load("loot-symbol.png");
-    let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
-
-    let buy_hoop_btn = commands
-        .spawn((
-            Sprite::from_image(moon_image),
-            Orbit {
-                current_loop_position: BUY_BOOP_STARTING_ORBIT + PI,
-                starting_transform: Transform {
-                    translation: Vec3::new(0., 300., 0.),
-                    ..default()
-                },
-            },
-            Pickable::default(),
-        ))
-        .id();
-
-    let buy_hoop_showcase = commands
-        .spawn((
-            Sprite::from_image(hoop_showcase),
-            Transform {
-                translation: Vec3::new(0., 60., 1.),
-                ..default()
-            },
-            Pickable {
-                should_block_lower: false,
-                is_hoverable: false,
-            },
-        ))
-        .id();
-
-    const LOOT_SYMBOL_SCALE: f32 = 0.05;
-    let loot_symbol = commands
-        .spawn((
-            Sprite::from_image(loot_symbol_image),
-            Transform {
-                translation: Vec3::new(-25., 0., 1.),
-                scale: Vec3::splat(LOOT_SYMBOL_SCALE),
-                ..default()
-            },
-            Pickable {
-                should_block_lower: false,
-                is_hoverable: false,
-            },
-        ))
-        .id();
-
-    let text = commands
-        .spawn((
-            Text2d::new(i32_to_display_str(hoop_prices[0])),
-            TextFont {
-                font: spacey_font,
-                font_size: 40.,
-                ..default()
-            },
-            TextColor(BLACK.into()),
-            Transform {
-                translation: Vec3::new(20., 0., 0.),
-                ..default()
-            },
-            Pickable {
-                should_block_lower: false,
-                is_hoverable: false,
-            },
-        ))
-        .id();
-
-    commands
-        .entity(buy_hoop_btn)
-        .add_children(&[buy_hoop_showcase, loot_symbol, text])
-        .insert(MoonBtn {
-            price_list: hoop_prices.to_vec(),
-            current_price_index: 0,
-            text,
-            r#loop,
-        })
-        .observe(buy_new_x_on_click::<AddHoop>);
-
-    commands.entity(r#loop).add_child(buy_hoop_btn);
-
-    buy_hoop_btn
+    create_buy_btn::<AddHoop>(
+        r#loop,
+        hoop_prices.to_vec(),
+        &planet.get_hoop_showcase_path(),
+        BUY_BOOP_STARTING_ORBIT + PI,
+        &mut commands,
+        &asset_server,
+    )
 }
 
 /// Advance the moon btns orbit, wrapping at 2. * PI
@@ -238,6 +87,107 @@ fn advance_moon_btn_orbits(btns: Query<&mut Orbit, With<MoonBtn>>, time: Res<Tim
         orbit.current_loop_position += increase;
         orbit.current_loop_position %= 2. * PI;
     }
+}
+
+/// Creates a buy moon btn.
+///
+/// \param T The command that is triggered on Buy
+/// \param showcase_path the path to the image on top of the moon
+/// \param starting_loop_position see Orbit::current_loop_position
+fn create_buy_btn<T: Command>(
+    r#loop: Entity,
+    prices: Vec<i32>,
+    showcase_path: &str,
+    starting_loop_position: f32,
+    commands: &mut Commands,
+    asset_server: &AssetServer,
+) -> Entity
+where
+    T: From<Entity>,
+{
+    let moon_img = asset_server.load("moon-btn.png");
+    let showcase_img = asset_server.load(showcase_path);
+    let loot_symbol_img = asset_server.load("loot-symbol.png");
+    let spacey_font = asset_server.load("SpaceGrotesk-Light.ttf");
+
+    let buy_btn = commands
+        .spawn((
+            Sprite::from_image(moon_img),
+            Orbit {
+                current_loop_position: starting_loop_position,
+                starting_transform: Transform {
+                    translation: Vec3::new(0., 300., 0.),
+                    ..default()
+                },
+            },
+            Pickable::default(),
+        ))
+        .id();
+
+    let showcase = commands
+        .spawn((
+            Sprite::from_image(showcase_img),
+            Transform {
+                translation: Vec3::new(0., 60., 1.),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+        ))
+        .id();
+
+    const LOOT_SYMBOL_SCALE: f32 = 0.05;
+    let loot_symbol = commands
+        .spawn((
+            Sprite::from_image(loot_symbol_img),
+            Transform {
+                translation: Vec3::new(-25., 0., 1.),
+                scale: Vec3::splat(LOOT_SYMBOL_SCALE),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+        ))
+        .id();
+
+    let text = commands
+        .spawn((
+            Text2d::new(i32_to_display_str(prices[0])),
+            TextFont {
+                font: spacey_font,
+                font_size: 40.,
+                ..default()
+            },
+            TextColor(BLACK.into()),
+            Transform {
+                translation: Vec3::new(20., 0., 0.),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+        ))
+        .id();
+
+    commands
+        .entity(buy_btn)
+        .add_children(&[showcase, loot_symbol, text])
+        .insert(MoonBtn {
+            price_list: prices,
+            current_price_index: 0,
+            text,
+            r#loop,
+        })
+        .observe(buy_new_x_on_click::<T>);
+
+    commands.entity(r#loop).add_child(buy_btn);
+
+    buy_btn
 }
 
 // If enough loot, decrements loot, queues the T command which adds the new thing bought, and updates the price text. Otherwise, makes a little *err* sound and turns orange briefly.
