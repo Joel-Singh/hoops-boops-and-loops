@@ -15,6 +15,9 @@ pub const FIRST_PLANET_INITIAL_SCALE: f32 = 0.19;
 #[derive(Resource, Deref, DerefMut)]
 struct MoonBtns([Entity; 2]);
 
+#[derive(Component)]
+pub struct FirstPlanet;
+
 /// Spawns the first planet, and transitions to it using a transition in CameraTransitions. Also sets up transitioning to the main game.
 pub struct TransitionToFirstPlanet;
 impl Command for TransitionToFirstPlanet {
@@ -45,6 +48,7 @@ fn transition_to_first_planet(
 
     commands
         .entity(r#loop)
+        .insert(FirstPlanet)
         .entry::<Transform>()
         .and_modify(|mut t| {
             t.scale *= FIRST_PLANET_INITIAL_SCALE;

@@ -15,7 +15,6 @@ use std::time::Duration;
 
 #[derive(Component)]
 struct Boop {
-    r#loop: Entity,
     in_hoop: bool,
 }
 
@@ -31,17 +30,16 @@ pub struct Orbit {
 
 impl Default for Boop {
     fn default() -> Self {
-        Boop {
-            r#loop: Entity::PLACEHOLDER,
-            in_hoop: false,
-        }
+        Boop { in_hoop: false }
     }
 }
 
 #[derive(Component)]
-struct Hoop {
-    r#loop: Entity,
-}
+struct Hoop {}
+
+/// Keeps track of when a hoop is bought, is used to transition to all planets on all hoops bought
+#[derive(Event)]
+pub struct AllHoopsBought;
 
 /// Corresponds to the different planet sprites since each hoop is colored to their specific planet
 #[derive(Copy, Clone)]
@@ -93,6 +91,11 @@ impl Planet {
     pub fn get_hoop_showcase_path(&self) -> String {
         let number = self.get_number();
         return "buy-hoop-showcase/".to_string() + &number + &".png";
+    }
+
+    pub fn get_locked_path(&self) -> String {
+        let number = self.get_number();
+        return "locked-loops/".to_string() + &number + &".png";
     }
 }
 
@@ -315,7 +318,13 @@ impl Command for AddHoop {
             panic!("Added a hoop to a loop that already has max hoops");
         }
         r#loop.hoop_count += 1;
+
         r#loop.hoop_sprites.push((outer_hoop, inner_hoop));
+
+        let is_max = r#loop.hoop_count == MAX_HOOPS;
+        if is_max {
+            world.trigger(AllHoopsBought);
+        }
     }
 }
 
@@ -349,10 +358,7 @@ impl Command for AddBoop {
             .spawn((
                 Sprite::from_image(boop_image),
                 starting_transform,
-                Boop {
-                    r#loop,
-                    ..default()
-                },
+                Boop { ..default() },
                 Orbit {
                     current_loop_position: 0.,
                     starting_transform,
