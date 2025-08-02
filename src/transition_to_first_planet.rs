@@ -20,12 +20,14 @@ impl Command for TransitionToFirstPlanet {
 }
 
 fn transition_to_first_planet(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
+    camera: Single<Entity, With<Camera>>,
+
     titlescreen_btn: Single<Entity, With<TitlescreenBtn>>,
     titlescreen_art: Single<Entity, With<TitlescreenArt>>,
+    titlescreen_moon: Single<Entity, With<TitlescreenMoon>>,
 
-    camera: Single<Entity, With<Camera>>,
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
 ) {
     let (r#loop, boop_moon, hoop_moon) = spawn_loop(
         LoopInfo {
@@ -54,12 +56,14 @@ fn transition_to_first_planet(
         .insert_recursive::<Children>(Disabled);
 
     commands
-        .entity(*titlescreen_btn)
+        .entity(*titlescreen_art)
         .insert(Animator::new(fade_to_transparent()));
 
     commands
-        .entity(*titlescreen_art)
+        .entity(*titlescreen_btn)
         .insert(Animator::new(fade_to_transparent()));
+
+    commands.entity(*titlescreen_moon).despawn();
 
     commands
         .entity(*camera)

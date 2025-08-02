@@ -9,6 +9,14 @@ pub struct TitlescreenArt;
 #[derive(Component)]
 pub struct TitlescreenBtn;
 
+/// Marker struct for the initial moon on the titlescreen
+#[derive(Component)]
+pub struct TitlescreenMoon;
+
+/// The parent of all titlescreen entities
+#[derive(Component)]
+pub struct TitlescreenParent;
+
 /// In World coords
 pub const PLAY_BTN_LOCATION: Vec2 = Vec2::new(-54., 77.);
 
@@ -21,26 +29,76 @@ pub fn titlescreen_plugin(app: &mut App) {
 fn spawn_title_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
     let art_image = asset_server.load("titlescreen/art.png");
     let play_btn_image = asset_server.load("titlescreen/play-button.png");
-    commands.spawn((
-        TitlescreenArt,
-        Sprite::from_image(art_image),
-        Pickable {
-            should_block_lower: false,
-            is_hoverable: false,
-        },
-        Transform {
-            translation: Vec3::new(0., 0., -1.),
-            ..default()
-        },
-    ));
+    let initial_moon_image = asset_server.load("titlescreen/initial-moon.png");
 
-    commands
+    let parent = commands
+        .spawn((TitlescreenParent, Transform { ..default() }))
+        .id();
+
+    let art = commands
+        .spawn((
+            TitlescreenArt,
+            Sprite::from_image(art_image),
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: false,
+            },
+            Transform {
+                translation: Vec3::new(0., 0., 0.),
+                ..default()
+            },
+        ))
+        .id();
+
+    let btn = commands
         .spawn((
             TitlescreenBtn,
-            Sprite::from_image(play_btn_image),
-            Pickable::default(),
+            Sprite {
+                image: play_btn_image,
+                color: Color::WHITE.with_alpha(0.),
+                ..default()
+            },
+            Pickable {
+                should_block_lower: false,
+                is_hoverable: true,
+            },
+            Transform {
+                translation: Vec3::new(0., 0., 1.),
+                ..default()
+            },
         ))
-        .observe(|trigger: Trigger<Pointer<Click>>, mut commands: Commands| {
+        .observe(|_: Trigger<Pointer<Click>>, mut commands: Commands| {
             commands.queue(TransitionToFirstPlanet);
-        });
+        })
+        .id();
+
+    // Represents the initial moon that turns into the play button on hover
+    let initial_moon = commands
+        .spawn((
+            Sprite {
+                image: initial_moon_image,
+                ..default()
+            },
+            Pickable::default(),
+            Transform {
+                translation: Vec3::new(0., 0., -1.),
+                ..default()
+            },
+            TitlescreenMoon,
+        ))
+        .observe(move |_: Trigger<Pointer<Over>>, mut commands: Commands| {
+            commands.entity(btn).entry::<Sprite>().and_modify(|mut s| {
+                s.color = Color::WHITE;
+            });
+        })
+        .observe(move |_: Trigger<Pointer<Out>>, mut commands: Commands| {
+            commands.entity(btn).entry::<Sprite>().and_modify(|mut s| {
+                s.color = Color::WHITE.with_alpha(0.);
+            });
+        })
+        .id();
+
+    commands
+        .entity(parent)
+        .add_children(&[art, btn, initial_moon]);
 }

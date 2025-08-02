@@ -16,7 +16,7 @@ impl Lens<Projection> for ProjectionScaleLens {
         let projection = target.target_mut();
         match projection {
             Projection::Orthographic(perspective) => {
-                perspective.scale = dbg!(value);
+                perspective.scale = value;
             }
             _ => {
                 panic!("Transitioning for non-orthographic views not supported");
