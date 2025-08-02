@@ -231,14 +231,11 @@ pub fn spawn_loop(
 ) -> (Entity, Entity, Entity) {
     let loop_image = asset_server.load(loop_info.planet.get_sprite_path());
 
-    const LOOP_SCALE: f32 = 0.8;
-
     let r#loop = commands
         .spawn((
             Sprite::from_image(loop_image),
             Transform {
                 translation: loop_info.position.extend(0.0),
-                scale: Transform::default().scale * LOOP_SCALE,
                 ..default()
             },
             Loop {
