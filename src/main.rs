@@ -13,7 +13,6 @@ mod titlescreen;
 mod transition_to_first_planet;
 
 use background::background_plugin;
-use bevy::window::WindowMode;
 use buy_boops_and_hoops::buy_boops_and_hoops_plugin;
 use hoops_boops_loops::hoops_boops_loops_plugin;
 use loot::loot_plugin;

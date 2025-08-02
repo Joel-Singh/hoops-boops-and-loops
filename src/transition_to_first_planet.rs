@@ -66,10 +66,9 @@ fn transition_to_first_planet(
 
     commands
         .entity(*titlescreen_parent)
-        .insert(Animator::new(scale_up()));
+        .insert(Animator::new(Tracks::new([move_titlescreen_with_planet()])));
 
-    commands.entity(r#loop).insert(Animator::new(Tracks::new([
-        scale_planet_up(),
-        center_first_planet(),
-    ])));
+    commands
+        .entity(r#loop)
+        .insert(Animator::new(center_first_planet().then(scale_planet_up())));
 }
