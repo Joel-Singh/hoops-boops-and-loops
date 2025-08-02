@@ -1,0 +1,1 @@
+pub const ZOOMED_OUT_PLANET_SCALE: f32 = 0.5;

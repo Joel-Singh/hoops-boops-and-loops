@@ -10,6 +10,7 @@ mod loot;
 mod orbit_starting_transform_y_lens;
 mod prices;
 mod projection_scale_lens;
+mod scales;
 mod screen_size;
 mod soundtrack;
 mod titlescreen;

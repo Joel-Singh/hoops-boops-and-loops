@@ -1,10 +1,8 @@
-
+use crate::scales::ZOOMED_OUT_PLANET_SCALE;
 use bevy::prelude::*;
 use bevy_tweening::lens::*;
 use bevy_tweening::*;
 use std::time::Duration;
-
-const ZOOMED_OUT_PLANET_SCALE: f32 = 0.5;
 
 /// Assuming its starting at Vec3::ZERO
 pub fn move_first_planet(end: Vec3) -> Tween<Transform> {

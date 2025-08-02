@@ -349,7 +349,7 @@ impl Command for AddBoop {
         const BOOP_TO_LOOP_MARGIN: f32 = 12.;
 
         let starting_transform = Transform {
-            translation: Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 0.),
+            translation: Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 1.),
             scale: Transform::default().scale * BOOP_SCALE,
             ..default()
         };
