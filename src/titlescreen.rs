@@ -18,7 +18,7 @@ pub struct TitlescreenMoon;
 pub struct TitlescreenParent;
 
 /// In World coords
-pub const PLAY_BTN_LOCATION: Vec2 = Vec2::new(-54., 77.);
+pub const PLAY_BTN_LOCATION: Vec2 = Vec2::new(-26., 88.);
 
 /// Spawns the titlescreen and play btn
 pub fn titlescreen_plugin(app: &mut App) {
@@ -28,7 +28,7 @@ pub fn titlescreen_plugin(app: &mut App) {
 /// Spawns the Titlescreen, Which will call transition to first planet on play_btn click
 fn spawn_title_screen(mut commands: Commands, asset_server: Res<AssetServer>) {
     let art_image = asset_server.load("titlescreen/art.png");
-    let play_btn_image = asset_server.load("titlescreen/play-button.png");
+    let play_btn_image = asset_server.load("titlescreen/play-btn.png");
     let initial_moon_image = asset_server.load("titlescreen/initial-moon.png");
 
     let parent = commands

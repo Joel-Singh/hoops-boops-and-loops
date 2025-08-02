@@ -9,7 +9,7 @@ use bevy_tweening::{Animator, Tracks};
 
 use tweens::*;
 
-pub const FIRST_PLANET_INITIAL_SCALE: f32 = 0.35;
+pub const FIRST_PLANET_INITIAL_SCALE: f32 = 0.19;
 
 /// Keep track of moon buttons, to brin them in after animation
 #[derive(Resource, Deref, DerefMut)]
