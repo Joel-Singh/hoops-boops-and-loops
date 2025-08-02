@@ -39,6 +39,7 @@ impl MoonBtn {
 struct PriceText;
 
 const BUY_BOOP_STARTING_ORBIT: f32 = 0.30;
+pub const BUY_BOOP_STARTING_HEIGHT: f32 = 300.;
 
 pub fn buy_boops_and_hoops_plugin(app: &mut App) {
     app.add_systems(FixedUpdate, advance_moon_btn_orbits);
@@ -116,7 +117,7 @@ where
             Orbit {
                 current_loop_position: starting_loop_position,
                 starting_transform: Transform {
-                    translation: Vec3::new(0., 300., 0.),
+                    translation: Vec3::new(0., BUY_BOOP_STARTING_HEIGHT, 0.),
                     ..default()
                 },
             },

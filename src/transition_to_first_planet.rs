@@ -1,15 +1,18 @@
 mod tweens;
 
-use crate::hoops_boops_loops::{LoopInfo, Planet, spawn_loop};
+use crate::hoops_boops_loops::{LoopInfo, Orbit, Planet, spawn_loop};
 use crate::prices::*;
 use crate::titlescreen::*;
-use bevy::ecs::entity_disabling::Disabled;
 use bevy::prelude::*;
 use bevy_tweening::{Animator, Tracks};
 
 use tweens::*;
 
 pub const FIRST_PLANET_INITIAL_SCALE: f32 = 0.35;
+
+/// Keep track of moon buttons, to brin them in after animation
+#[derive(Resource, Deref, DerefMut)]
+struct MoonBtns([Entity; 2]);
 
 /// Spawns the first planet, and transitions to it using a transition in CameraTransitions. Also sets up transitioning to the main game.
 pub struct TransitionToFirstPlanet;
@@ -49,12 +52,16 @@ fn transition_to_first_planet(
 
     commands.entity(*titlescreen_moon).despawn();
 
-    commands
-        .entity(boop_moon)
-        .insert_recursive::<Children>(Disabled);
-    commands
-        .entity(hoop_moon)
-        .insert_recursive::<Children>(Disabled);
+    commands.insert_resource(MoonBtns([boop_moon, hoop_moon]));
+    // Hide boop and hoop by placing them offscreen
+    for moon in [boop_moon, hoop_moon] {
+        commands
+            .entity(moon)
+            .entry::<Orbit>()
+            .and_modify(|mut orbit| {
+                orbit.starting_transform.translation.y = 99999.;
+            });
+    }
 
     commands
         .entity(*titlescreen_btn)
@@ -68,7 +75,23 @@ fn transition_to_first_planet(
         .entity(*titlescreen_parent)
         .insert(Animator::new(Tracks::new([move_titlescreen_with_planet()])));
 
-    commands
-        .entity(r#loop)
-        .insert(Animator::new(center_first_planet().then(scale_planet_up())));
+    let bring_moon_btns_in = commands.register_system(bring_moon_btns_in);
+    commands.entity(r#loop).insert(Animator::new(
+        center_first_planet().then(scale_planet_up().with_completed_system(bring_moon_btns_in)),
+    ));
+}
+
+fn bring_moon_btns_in(mut commands: Commands, moon_btns: Res<MoonBtns>) {
+    for btn in **moon_btns {
+        commands
+            .entity(btn)
+            .entry::<Transform>()
+            .and_modify(|mut t| {
+                t.scale = Vec3::splat(1.) // Scale of zero to hide
+            });
+
+        commands
+            .entity(btn)
+            .insert(Animator::new(bring_moon_in_tween()));
+    }
 }

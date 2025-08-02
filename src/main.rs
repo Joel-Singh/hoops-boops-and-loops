@@ -6,12 +6,14 @@ mod background;
 mod buy_boops_and_hoops;
 mod hoops_boops_loops;
 mod loot;
+mod orbit_starting_transform_y_lens;
 mod prices;
 mod projection_scale_lens;
 mod soundtrack;
 mod titlescreen;
 mod transition_to_first_planet;
 
+use crate::orbit_starting_transform_y_lens::orbit_starting_transform_y_lens_plugin;
 use background::background_plugin;
 use buy_boops_and_hoops::buy_boops_and_hoops_plugin;
 use hoops_boops_loops::hoops_boops_loops_plugin;
@@ -39,6 +41,7 @@ fn main() {
             soundtrack_plugin,
             titlescreen_plugin,
             projection_scale_lens_plugin,
+            orbit_starting_transform_y_lens_plugin,
         ))
         .add_systems(Startup, setup_camera)
         .run();
