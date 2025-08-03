@@ -120,7 +120,7 @@ struct Loop {
 const MAX_HOOPS: i32 = 8;
 const MAX_BOOPS: usize = 16;
 
-const LOOP_FILE_HEIGHT: f32 = 295.;
+const LOOP_FILE_HEIGHT: f32 = 472.;
 const LOOP_RADIUS: f32 = LOOP_FILE_HEIGHT / 2.;
 
 pub fn hoops_boops_loops_plugin(app: &mut App) {
@@ -355,12 +355,10 @@ impl Command for AddBoop {
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
         let boop_image = load_random_variant("boop", &asset_server, 1, 5);
 
-        const BOOP_SCALE: f32 = 0.3;
-        const BOOP_TO_LOOP_MARGIN: f32 = 12.;
+        const BOOP_TO_LOOP_MARGIN: f32 = 15.;
 
         let starting_transform = Transform {
             translation: Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 1.),
-            scale: Transform::default().scale * BOOP_SCALE,
             ..default()
         };
 
