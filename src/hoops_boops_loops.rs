@@ -3,6 +3,7 @@
 use crate::buy_boops_and_hoops::{create_buy_boop_button, create_buy_hoop_button};
 use crate::loot::Loot;
 use crate::play_hoop_through_boop_sounds::PlayBoopThroughHoop;
+use crate::prices::PLANET_PRICES;
 use bevy::prelude::*;
 use bevy_tweening::Animator;
 use bevy_tweening::RepeatCount;
@@ -103,6 +104,17 @@ impl Planet {
     pub fn get_hoop_showcase_path(&self) -> String {
         let number = self.get_number();
         return "buy-hoop-showcase/".to_string() + &number + &".png";
+    }
+
+    pub fn get_price(&self) -> i32 {
+        match self {
+            Planet::One => PLANET_PRICES[0],
+            Planet::Two => PLANET_PRICES[1],
+            Planet::Three => PLANET_PRICES[2],
+            Planet::Four => PLANET_PRICES[3],
+            Planet::Five => PLANET_PRICES[4],
+            Planet::Six => PLANET_PRICES[5],
+        }
     }
 }
 

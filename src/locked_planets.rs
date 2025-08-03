@@ -1,9 +1,12 @@
 mod tweens;
 
 use crate::hoops_boops_loops::{LoopInfo, Planet, spawn_loop};
-use crate::locked_planets::tweens::slide_in_from_left_tween;
+use crate::locked_planets::tweens::*;
+use crate::loot::Loot;
+use crate::prices::*;
 use crate::scales::ZOOMED_OUT_PLANET_SCALE;
 use crate::screen_size::SCREEN_SIZE;
+use bevy::audio::PlaybackMode;
 use bevy::prelude::*;
 use bevy_tweening::Animator;
 
@@ -11,6 +14,9 @@ use bevy_tweening::Animator;
 pub struct LockedPlanet {
     planet: Planet,
 }
+
+#[derive(Event)]
+pub struct BoughtLoop;
 
 #[derive(Resource)]
 struct Handles {
@@ -47,7 +53,7 @@ impl Command for SpawnLockedPlanet {
             loot_symbol,
             spacey_font,
             self.pos.clone(),
-            50,
+            self.planet.get_price(),
         );
 
         let locked_planet = world
@@ -63,10 +69,10 @@ impl Command for SpawnLockedPlanet {
                 },
                 Pickable::default(),
             ))
-            .observe(spawn_loop_on_click)
+            .observe(buy_loop_on_click)
             .observe(highlight_on_hover)
             .observe(unhighlight_on_out)
-            .observe(move |_: Trigger<Pointer<Click>>, mut commands: Commands| {
+            .observe(move |_: Trigger<BoughtLoop>, mut commands: Commands| {
                 commands.entity(price_display).despawn();
             })
             .id();
@@ -77,34 +83,64 @@ impl Command for SpawnLockedPlanet {
     }
 }
 
-fn spawn_loop_on_click(
+fn buy_loop_on_click(
     t: Trigger<Pointer<Click>>,
     transform_q: Query<&Transform, With<LockedPlanet>>,
     locked_planet_q: Query<&LockedPlanet>,
+    mut loot: ResMut<Loot>,
 
     mut commands: Commands,
     asset_server: Res<AssetServer>,
 ) {
-    let position = transform_q.get(t.target).unwrap();
     let planet = locked_planet_q.get(t.target).unwrap().planet;
+    let price = planet.get_price();
 
-    let (r#loop, _, _) = spawn_loop(
-        LoopInfo {
-            position: position.translation.truncate(),
-            planet: planet,
-            boop_prices: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-            hoop_prices: [0, 0, 0, 0, 0, 0, 0, 0],
-        },
-        &mut commands,
-        &asset_server,
-    );
+    if **loot > price {
+        commands.spawn((
+            AudioPlayer::new(asset_server.load("successful-buy.ogg")),
+            PlaybackSettings {
+                mode: PlaybackMode::Despawn,
+                ..default()
+            },
+        ));
+        commands
+            .entity(t.target)
+            .insert(Animator::new(fade_in_blue()));
 
-    commands
-        .entity(r#loop)
-        .entry::<Transform>()
-        .and_modify(|mut t| t.scale = Vec3::splat(ZOOMED_OUT_PLANET_SCALE));
+        **loot -= price;
+        let position = transform_q.get(t.target).unwrap();
 
-    commands.entity(t.target).despawn();
+        let (r#loop, _, _) = spawn_loop(
+            LoopInfo {
+                position: position.translation.truncate(),
+                planet: planet,
+                boop_prices: FIRST_PLANET_BOOP_PRICES,
+                hoop_prices: FIRST_PLANET_HOOP_PRICES,
+            },
+            &mut commands,
+            &asset_server,
+        );
+
+        commands
+            .entity(r#loop)
+            .entry::<Transform>()
+            .and_modify(|mut t| t.scale = Vec3::splat(ZOOMED_OUT_PLANET_SCALE));
+
+        // Despawns the prices display
+        commands.entity(t.target).trigger(BoughtLoop).despawn();
+    } else {
+        commands.spawn((
+            AudioPlayer::new(asset_server.load("unsuccessful-buy.ogg")),
+            PlaybackSettings {
+                mode: PlaybackMode::Despawn,
+                ..default()
+            },
+        ));
+
+        commands
+            .entity(t.target)
+            .insert(Animator::new(fade_in_orange()));
+    }
 }
 
 fn highlight_on_hover(t: Trigger<Pointer<Over>>, mut commands: Commands, handles: Res<Handles>) {
