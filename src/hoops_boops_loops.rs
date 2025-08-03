@@ -9,7 +9,6 @@ use bevy_tweening::RepeatCount;
 use bevy_tweening::RepeatStrategy;
 use bevy_tweening::Tween;
 use bevy_tweening::lens::SpriteColorLens;
-use rand::Rng;
 use std::f32::consts::PI;
 use std::time::Duration;
 
@@ -356,9 +355,11 @@ impl Command for AddBoop {
         let boop_image = asset_server.load("boop.png");
 
         const BOOP_TO_LOOP_MARGIN: f32 = 15.;
+        const SCALE: f32 = 0.1;
 
         let starting_transform = Transform {
             translation: Vec3::new(0., LOOP_RADIUS + BOOP_TO_LOOP_MARGIN, 1.),
+            scale: Vec3::splat(SCALE),
             ..default()
         };
 
