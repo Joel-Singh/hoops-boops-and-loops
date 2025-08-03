@@ -8,6 +8,7 @@ mod hoops_boops_loops;
 mod locked_planets;
 mod loot;
 mod orbit_starting_transform_y_lens;
+mod play_hoop_through_boop_sounds;
 mod prices;
 mod projection_scale_lens;
 mod scales;
@@ -49,6 +50,7 @@ fn main() {
             orbit_starting_transform_y_lens_plugin,
             transition_to_all_planets::plugin,
             locked_planets::plugin,
+            play_hoop_through_boop_sounds::plugin,
         ))
         .add_systems(Startup, setup_camera)
         .run();

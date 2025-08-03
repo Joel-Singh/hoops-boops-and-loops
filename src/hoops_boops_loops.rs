@@ -2,7 +2,7 @@
 /// loop because its a keyword
 use crate::buy_boops_and_hoops::{create_buy_boop_button, create_buy_hoop_button};
 use crate::loot::Loot;
-use bevy::audio::PlaybackMode;
+use crate::play_hoop_through_boop_sounds::PlayBoopThroughHoop;
 use bevy::prelude::*;
 use bevy_tweening::Animator;
 use bevy_tweening::RepeatCount;
@@ -160,9 +160,9 @@ fn get_loot_on_boop_in_hoop(
     mut boop_q: Query<(&Transform, &mut Boop)>,
     loop_q: Query<&Loop>,
     mut loot: ResMut<Loot>,
+    mut ev_writer: EventWriter<PlayBoopThroughHoop>,
 
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
 ) {
     // counterclockwise from the top left
     // Have to convert because GIMP reports coordinates in ui-space
@@ -211,13 +211,7 @@ fn get_loot_on_boop_in_hoop(
                     .entity(r#loop.hoop_sprites[in_hoop as usize].1)
                     .insert(Animator::new(brief_fade_to_white_tween()));
 
-                commands.spawn((
-                    AudioPlayer::new(asset_server.load("boop-going-through-hoop.ogg")),
-                    PlaybackSettings {
-                        mode: PlaybackMode::Despawn,
-                        ..default()
-                    },
-                ));
+                ev_writer.write(PlayBoopThroughHoop);
             }
 
             if in_hoop.is_none() {
