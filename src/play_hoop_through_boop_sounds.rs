@@ -19,7 +19,7 @@ fn play_hoop_through_boop_sounds(
     mut is_ready_to_boop: Local<bool>,
     time: Res<Time<Real>>,
 ) {
-    const BOOP_INTERVAL: Duration = Duration::from_millis(100);
+    const BOOP_INTERVAL: Duration = Duration::from_millis(150);
 
     *time_since_last_boop += time.delta();
 
