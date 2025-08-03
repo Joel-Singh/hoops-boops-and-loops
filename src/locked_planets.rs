@@ -163,7 +163,7 @@ fn spawn_price_display(
     price: i32,
 ) -> Entity {
     // For animation
-    const STARTING_LEFT_OFFSET: f32 = -1500.;
+    const STARTING_LEFT_OFFSET: f32 = -1400.;
     const TOP_OFFSET: f32 = 135.;
     let top = (SCREEN_SIZE.y / 2.) - pos.y + TOP_OFFSET;
     let width = 150.;
@@ -228,10 +228,8 @@ fn spawn_price_display(
     commands
         .entity(price_display)
         .add_children(&[loot_symbol, text_container])
-        .insert(Animator::new(slide_in_from_left_tween(
-            starting_left,
-            ending_left,
-            top,
+        .insert(Animator::new(wait_seconds(10., starting_left, top).then(
+            slide_in_from_left_tween(starting_left, ending_left, top),
         )));
 
     price_display
