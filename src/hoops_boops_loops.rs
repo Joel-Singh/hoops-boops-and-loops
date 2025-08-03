@@ -236,7 +236,7 @@ fn get_loot_on_boop_in_hoop(
 pub struct LoopInfo {
     pub position: Vec2,
     pub planet: Planet,
-    pub boop_prices: [i32; 15],
+    pub boop_prices: [i32; 5],
     pub hoop_prices: [i32; 8],
 }
 

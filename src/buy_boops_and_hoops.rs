@@ -53,7 +53,7 @@ pub fn buy_boops_and_hoops_plugin(app: &mut App) {
 /// Creates a moon button that buys boops
 pub fn create_buy_boop_button(
     r#loop: Entity,
-    boop_prices: [i32; 15],
+    boop_prices: [i32; 5],
     mut commands: &mut Commands,
     asset_server: &AssetServer,
 ) -> Entity {
