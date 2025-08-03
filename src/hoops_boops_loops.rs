@@ -177,7 +177,7 @@ fn get_loot_on_boop_in_hoop(
         Vec2::new(98., 219.),
     ];
 
-    let on_hoop_tolerance = 10.;
+    let on_hoop_tolerance = 20.;
 
     for r#loop in loop_q {
         for boop in r#loop.boops.clone() {
