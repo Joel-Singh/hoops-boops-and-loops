@@ -1,1 +1,6 @@
-pub const ZOOMED_OUT_PLANET_SCALE: f32 = 0.5;
+pub const PLANET_FILE_HEIGHT: f32 = 470.;
+pub const PLANET_FILE_RADIUS: f32 = PLANET_FILE_HEIGHT / 2.;
+
+pub const ZOOMED_OUT_PLANET_HEIGHT: f32 = 222.;
+
+pub const ZOOMED_OUT_PLANET_SCALE: f32 = 222. / 470.;

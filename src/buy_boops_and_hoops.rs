@@ -1,5 +1,6 @@
 use crate::hoops_boops_loops::{AddBoop, AddHoop, Orbit, Planet};
 use crate::loot::Loot;
+use crate::scales::*;
 use bevy::audio::PlaybackMode;
 use bevy::color::palettes::basic::BLACK;
 use bevy::prelude::*;
@@ -39,7 +40,11 @@ impl MoonBtn {
 struct PriceText;
 
 const BUY_BOOP_STARTING_ORBIT: f32 = 0.30;
-pub const BUY_BOOP_STARTING_HEIGHT: f32 = 400.;
+
+const BUY_BOOP_MARGIN_TO_PLANET_WHEN_ZOOMED_OUT: f32 = 73.;
+
+pub const BUY_BOOP_STARTING_HEIGHT: f32 =
+    PLANET_FILE_RADIUS + (BUY_BOOP_MARGIN_TO_PLANET_WHEN_ZOOMED_OUT / ZOOMED_OUT_PLANET_SCALE);
 
 pub fn buy_boops_and_hoops_plugin(app: &mut App) {
     app.add_systems(FixedUpdate, advance_moon_btn_orbits);

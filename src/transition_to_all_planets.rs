@@ -41,7 +41,7 @@ fn transition_to_all_planets(
     }
 
     fn calculate_planet_positions() -> [Vec2; 6] {
-        let margin: Vec2 = Vec2::splat(200.);
+        let margin: Vec2 = Vec2::new(230., 192.);
 
         let available_space: Vec2 = SCREEN_SIZE - (margin * 2.);
         let planet_x_spacing: f32 = available_space.x / 2.;
@@ -49,9 +49,8 @@ fn transition_to_all_planets(
         // 2 rows
         let available_row_space: f32 = available_space.y / 2.;
 
-        let row_gap: f32 = 80.;
-        let row_one_center_y: f32 = available_row_space / 2. + row_gap;
-
+        // Measurements taken from image from yuvi
+        let row_one_center_y: f32 = SCREEN_SIZE.y / 2. - margin.y;
         let row_two_center_y: f32 = -row_one_center_y;
 
         let mut planet_positions: [Vec2; 6] = [Vec2::default(); 6];
