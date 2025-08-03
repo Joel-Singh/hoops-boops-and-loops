@@ -29,9 +29,12 @@ pub struct SpawnLockedPlanet {
 
 impl Command for SpawnLockedPlanet {
     fn apply(self, world: &mut World) {
+        let asset_server = world.get_resource::<AssetServer>().unwrap();
+        let planet_img = asset_server.load(self.planet.get_sprite_path());
+
         let handles = world.get_resource::<Handles>().unwrap();
 
-        world
+        let locked_planet = world
             .spawn((
                 Sprite::from_image(handles.prehover.clone()),
                 Transform {
@@ -46,7 +49,12 @@ impl Command for SpawnLockedPlanet {
             ))
             .observe(spawn_loop_on_click)
             .observe(highlight_on_hover)
-            .observe(unhighlight_on_out);
+            .observe(unhighlight_on_out)
+            .id();
+
+        world
+            .entity_mut(locked_planet)
+            .with_child(Sprite::from_image(planet_img));
     }
 }
 
@@ -76,6 +84,8 @@ fn spawn_loop_on_click(
         .entity(r#loop)
         .entry::<Transform>()
         .and_modify(|mut t| t.scale = Vec3::splat(ZOOMED_OUT_PLANET_SCALE));
+
+    commands.entity(t.target).despawn();
 }
 
 fn highlight_on_hover(t: Trigger<Pointer<Over>>, mut commands: Commands, handles: Res<Handles>) {

@@ -76,7 +76,7 @@ impl Planet {
         }
     }
 
-    fn get_sprite_path(&self) -> String {
+    pub fn get_sprite_path(&self) -> String {
         return "loops/".to_string() + &self.get_number() + &".png";
     }
 
