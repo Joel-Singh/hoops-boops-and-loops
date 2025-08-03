@@ -44,7 +44,9 @@ impl Command for SpawnLockedPlanet {
                 },
                 Pickable::default(),
             ))
-            .observe(spawn_loop_on_click);
+            .observe(spawn_loop_on_click)
+            .observe(highlight_on_hover)
+            .observe(unhighlight_on_out);
     }
 }
 
@@ -74,6 +76,18 @@ fn spawn_loop_on_click(
         .entity(r#loop)
         .entry::<Transform>()
         .and_modify(|mut t| t.scale = Vec3::splat(ZOOMED_OUT_PLANET_SCALE));
+}
+
+fn highlight_on_hover(t: Trigger<Pointer<Over>>, mut commands: Commands, handles: Res<Handles>) {
+    commands
+        .entity(t.target)
+        .insert(Sprite::from_image(handles.onhover.clone()));
+}
+
+fn unhighlight_on_out(t: Trigger<Pointer<Out>>, mut commands: Commands, handles: Res<Handles>) {
+    commands
+        .entity(t.target)
+        .insert(Sprite::from_image(handles.prehover.clone()));
 }
 
 fn load_handles(asset_server: Res<AssetServer>, mut commands: Commands) {
