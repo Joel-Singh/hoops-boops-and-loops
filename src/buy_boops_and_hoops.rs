@@ -59,6 +59,10 @@ pub fn create_buy_boop_button(
         BUY_BOOP_STARTING_ORBIT,
         &mut commands,
         &asset_server,
+        Transform {
+            translation: Vec3::new(0., 60., 1.),
+            ..default()
+        },
     )
 }
 
@@ -77,6 +81,11 @@ pub fn create_buy_hoop_button(
         BUY_BOOP_STARTING_ORBIT + PI,
         &mut commands,
         &asset_server,
+        Transform {
+            translation: Vec3::new(-10., 60., 1.),
+            rotation: Quat::from_rotation_z(0.6),
+            ..default()
+        },
     )
 }
 
@@ -102,6 +111,7 @@ fn create_buy_btn<T: Command>(
     starting_loop_position: f32,
     commands: &mut Commands,
     asset_server: &AssetServer,
+    showcase_transform: Transform,
 ) -> Entity
 where
     T: From<Entity>,
@@ -128,10 +138,7 @@ where
     let showcase = commands
         .spawn((
             Sprite::from_image(showcase_img),
-            Transform {
-                translation: Vec3::new(0., 60., 1.),
-                ..default()
-            },
+            showcase_transform,
             Pickable {
                 should_block_lower: false,
                 is_hoverable: false,
