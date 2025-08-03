@@ -165,15 +165,16 @@ fn get_loot_on_boop_in_hoop(
     asset_server: Res<AssetServer>,
 ) {
     // counterclockwise from the top left
+    // Have to convert because GIMP reports coordinates in ui-space
     let hoop_positions: [Vec2; 8] = [
-        (-64.5, 140.5).into(),
-        (-147.5, 55.5).into(),
-        (-146.0, -58.5).into(),
-        (-67.5, -143.5).into(),
-        (66.5, -142.5).into(),
-        (148.5, -56.5).into(),
-        (147.5, 56.5).into(),
-        (66.5, 141.5).into(),
+        Vec2::new(-95., 222.),
+        Vec2::new(-225., 91.),
+        Vec2::new(-222., -93.),
+        Vec2::new(-98., -223.),
+        Vec2::new(95., -226.),
+        Vec2::new(221., -96.),
+        Vec2::new(223., 92.),
+        Vec2::new(98., 219.),
     ];
 
     let on_hoop_tolerance = 10.;
