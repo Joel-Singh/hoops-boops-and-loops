@@ -48,6 +48,7 @@ fn main() {
             projection_scale_lens_plugin,
             orbit_starting_transform_y_lens_plugin,
             transition_to_all_planets::plugin,
+            locked_planets::plugin,
         ))
         .add_systems(Startup, setup_camera)
         .run();

@@ -92,11 +92,6 @@ impl Planet {
         let number = self.get_number();
         return "buy-hoop-showcase/".to_string() + &number + &".png";
     }
-
-    pub fn get_locked_path(&self) -> String {
-        let number = self.get_number();
-        return "locked-loops/".to_string() + &number + &".png";
-    }
 }
 
 #[derive(Component)]

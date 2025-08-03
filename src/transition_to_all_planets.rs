@@ -1,13 +1,11 @@
 mod tweens;
 
 use crate::hoops_boops_loops::AllHoopsBought;
-use crate::hoops_boops_loops::Planet;
-use crate::locked_planets::{LockedPlanet, spawn_locked_planet};
+use crate::locked_planets::{LockedPlanet, SpawnLockedPlanet};
 use crate::screen_size::SCREEN_SIZE;
 use crate::transition_to_first_planet::FirstPlanet;
 use bevy::prelude::*;
 use bevy_tweening::Animator;
-use std::iter::zip;
 use tweens::*;
 
 #[derive(Resource, Deref, DerefMut)]
@@ -35,27 +33,11 @@ fn transition_to_all_planets(
             .with_completed_system(tween_planet_scales),
     ));
 
-    for (i, planet) in zip(
-        1..PLANET_COUNT,
-        [
-            Planet::Two,
-            Planet::Three,
-            Planet::Four,
-            Planet::Five,
-            Planet::Six,
-        ],
-    ) {
-        let locked_planet = spawn_locked_planet(
-            planet,
-            planet_positions[i as usize],
-            &mut commands,
-            &asset_server,
-        );
-
-        commands
-            .entity(locked_planet)
-            .entry::<Transform>()
-            .and_modify(|mut t| t.scale = Vec3::ZERO);
+    for i in 1..PLANET_COUNT {
+        commands.queue(SpawnLockedPlanet {
+            pos: planet_positions[i as usize],
+            initial_scale: 0.,
+        });
     }
 
     fn calculate_planet_positions() -> [Vec2; 6] {
