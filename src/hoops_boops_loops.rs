@@ -353,7 +353,7 @@ impl Command for AddBoop {
     fn apply(self, world: &mut World) {
         let r#loop = self.0;
         let asset_server = world.get_resource_mut::<AssetServer>().unwrap();
-        let boop_image = load_random_variant("boop", &asset_server, 1, 5);
+        let boop_image = asset_server.load("boop.png");
 
         const BOOP_TO_LOOP_MARGIN: f32 = 15.;
 
@@ -393,19 +393,6 @@ impl From<Entity> for AddBoop {
     fn from(entity: Entity) -> Self {
         AddBoop(entity)
     }
-}
-
-/// Load randomly "file-#.svg" with the # being replaced by a random number from start to end
-/// inclusive on both ends
-fn load_random_variant(
-    file_name: &'static str,
-    asset_server: &AssetServer,
-    start: u32,
-    end: u32,
-) -> Handle<Image> {
-    let mut rng = rand::rng();
-    asset_server
-        .load(file_name.to_owned() + "-" + &rng.random_range(start..=end).to_string() + ".png")
 }
 
 fn brief_fade_to_white_tween() -> Tween<Sprite> {
