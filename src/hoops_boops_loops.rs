@@ -291,6 +291,8 @@ impl Command for AddHoop {
         let outer_hoop_image = asset_server.load(planet.get_outer_hoop_path(hoop_count + 1));
         let inner_hoop_image = asset_server.load(planet.get_inner_hoop_path(hoop_count + 1));
 
+        const DOWN_OFFSET: f32 = -20.; // add a small offset because the rings are slightly too
+        // high
         let outer_hoop = world
             .spawn((
                 Sprite {
@@ -298,7 +300,7 @@ impl Command for AddHoop {
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::new(0., 0., 1.),
+                    translation: Vec3::new(0., DOWN_OFFSET, 1.),
                     ..default()
                 },
             ))
@@ -311,7 +313,7 @@ impl Command for AddHoop {
                     ..default()
                 },
                 Transform {
-                    translation: Vec3::new(0., 0., -1.),
+                    translation: Vec3::new(0., DOWN_OFFSET, -1.),
                     ..default()
                 },
             ))
