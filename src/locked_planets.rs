@@ -212,8 +212,14 @@ fn spawn_price_display(
         })
         .id();
 
+    let price_string = if price >= 100 {
+        (price / 100).to_string() + "h"
+    } else {
+        price.to_string()
+    };
+
     commands.entity(text_container).with_child((
-        Text::new(price.to_string()),
+        Text::new(price_string),
         TextFont {
             font: spacey_font,
             font_size: 40.,
