@@ -53,6 +53,19 @@ pub enum Planet {
 }
 
 impl Planet {
+    /// There are only six planets, any number not 1 through 6 will panic
+    pub fn from_i32(i: i32) -> Self {
+        match i {
+            1 => Planet::One,
+            2 => Planet::Two,
+            3 => Planet::Three,
+            4 => Planet::Four,
+            5 => Planet::Five,
+            6 => Planet::Six,
+            _ => panic!("Tried to convert non 1-6 i32 to planet"),
+        }
+    }
+
     fn get_number(&self) -> String {
         match self {
             Planet::One => "1".to_string(),
@@ -65,7 +78,7 @@ impl Planet {
     }
 
     fn get_sprite_path(&self) -> String {
-        return "loop-".to_string() + &self.get_number() + &".png";
+        return "loops/".to_string() + &self.get_number() + &".png";
     }
 
     fn get_inner_hoop_path(&self, count: i32) -> String {

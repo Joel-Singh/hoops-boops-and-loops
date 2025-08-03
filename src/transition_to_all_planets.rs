@@ -1,6 +1,6 @@
 mod tweens;
 
-use crate::hoops_boops_loops::AllHoopsBought;
+use crate::hoops_boops_loops::{AllHoopsBought, Planet};
 use crate::locked_planets::{LockedPlanet, SpawnLockedPlanet};
 use crate::screen_size::SCREEN_SIZE;
 use crate::transition_to_first_planet::FirstPlanet;
@@ -21,7 +21,6 @@ fn transition_to_all_planets(
     first_planet: Single<Entity, With<FirstPlanet>>,
 
     mut commands: Commands,
-    asset_server: Res<AssetServer>,
 ) {
     let planet_positions = calculate_planet_positions();
 
@@ -37,6 +36,7 @@ fn transition_to_all_planets(
         commands.queue(SpawnLockedPlanet {
             pos: planet_positions[i as usize],
             initial_scale: 0.,
+            planet: Planet::from_i32(i + 1),
         });
     }
 
